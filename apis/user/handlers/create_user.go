@@ -3,15 +3,12 @@ package handler
 import (
 	"smart-waste/apis/user/models/req"
 	"smart-waste/domain/user/entity"
-	usecase "smart-waste/domain/user/usecase"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 )
 
-type UserHandler struct {
-	CreateUserUsecase *usecase.CreateUserUsecase
-}
-
+// CreateUser Handles creating
 func (u UserHandler) HandlerCreateUser() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var createUserReq = new(req.CreateUserReq)
@@ -21,8 +18,10 @@ func (u UserHandler) HandlerCreateUser() fiber.Handler {
 			})
 		}
 
+		userID := uuid.New().String()
+
 		var userEntity = entity.User{
-			ID:        createUserReq.ID,
+			ID:        userID,
 			FirstName: createUserReq.FirstName,
 			LastName:  createUserReq.LastName,
 			Gender:    createUserReq.Gender,
@@ -33,7 +32,7 @@ func (u UserHandler) HandlerCreateUser() fiber.Handler {
 			Password:  createUserReq.Password,
 		}
 
-		var useCaseErr = u.CreateUserUsecase.ExecuteCreateUser(c.Context(), userEntity)
+		var useCaseErr = u.CreateUserUsecase.ExecuteCreateUser(c.Context(), &userEntity)
 		if useCaseErr != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(&fiber.Map{
 				"error": useCaseErr.Error(),
