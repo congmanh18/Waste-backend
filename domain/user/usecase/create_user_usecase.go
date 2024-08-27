@@ -18,7 +18,7 @@ func NewCreateUserUsecase(db *gorm.DB) *CreateUserUsecase {
 	}
 }
 
-func (c CreateUserUsecase) ExecuteCreateUser(ctx context.Context, user entity.User) error {
+func (c CreateUserUsecase) ExecuteCreateUser(ctx context.Context, user *entity.User) error {
 	if err := user.IsValidUser(); err != nil {
 		return err
 	}

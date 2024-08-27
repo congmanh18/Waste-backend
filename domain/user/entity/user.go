@@ -58,9 +58,6 @@ func (u User) IsValidUser() error {
 	if !u.areRequiredFieldsPresent() {
 		return errors.New("required fields are missing")
 	}
-	if !u.isFieldLengthValid(u.Username, 3, 20) {
-		return errors.New("username length invalid")
-	}
 	if !u.isFieldLengthValid(u.Password, 8, 64) {
 		return errors.New("password length invalid")
 	}
