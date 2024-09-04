@@ -17,6 +17,6 @@ func NewDeleteUserUsecase(db *gorm.DB) *DeleteUserUsecase {
 	}
 }
 
-func (u *DeleteUserUsecase) ExecuteDeleteUser(ctx context.Context, id string) error {
-	return u.userRepo.Delete(ctx, id)
+func (d *DeleteUserUsecase) ExecuteDeleteUser(ctx context.Context, id string) error {
+	return d.userRepo.Delete(ctx, id)
 }
