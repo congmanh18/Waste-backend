@@ -17,7 +17,7 @@ func (u UserHandler) HandlerCreateUser() fiber.Handler {
 				"error": err.Error(),
 			})
 		}
-
+		// v7
 		userID := uuid.New().String()
 
 		var userEntity = entity.User{

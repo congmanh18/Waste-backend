@@ -10,6 +10,8 @@ func (u UserHandler) HandlerDeleteUser() fiber.Handler {
 				"error": err.Error(),
 			})
 		}
+
+		// gom vao struct
 		return c.Status(fiber.StatusOK).JSON(&fiber.Map{
 			"message": "User deleted successfully",
 		})

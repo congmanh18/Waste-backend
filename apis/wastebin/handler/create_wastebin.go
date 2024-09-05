@@ -17,6 +17,8 @@ func (u WasteBinHandler) HandlerCreateWasteBin() fiber.Handler {
 			})
 		}
 		// Validate request data here (e.g., weight, filledLevel, airQuality, waterLevel, address, latitude, longitude)
+
+		// V7
 		wasteBinID := uuid.New().String()
 		var wasteBinEntity = entity.WasteBin{
 			ID:          wasteBinID,
