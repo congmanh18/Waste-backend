@@ -1,9 +1,9 @@
-package model
+package auth
 
 import "github.com/dgrijalva/jwt-go"
 
 type JwtCustomClaims struct {
-	UserId string
-	Role   string
+	UserId string `json:"id"`
+	Role   string `json:"role"`
 	jwt.StandardClaims
 }

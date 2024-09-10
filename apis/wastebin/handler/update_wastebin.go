@@ -1,14 +1,19 @@
 package handler
 
 import (
+	"context"
 	req "smart-waste/apis/wastebin/model"
 	"smart-waste/domain/wastebin/entity"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 )
 
 func (w WasteBinHandler) HandlerUpdateWasteBin() fiber.Handler {
 	return func(c *fiber.Ctx) error {
+		ctx, cancel := context.WithTimeout(c.Context(), 5*time.Second)
+		defer cancel()
+
 		var updateWasteBinReq = new(req.CreateWasteBinReq)
 		if err := c.BodyParser(&updateWasteBinReq); err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(&fiber.Map{
@@ -26,7 +31,7 @@ func (w WasteBinHandler) HandlerUpdateWasteBin() fiber.Handler {
 			Longitude:   updateWasteBinReq.Longitude,
 		}
 
-		var useCaseErr = w.UpdateWasteBinUsecase.ExecuteUpdateWasteBin(c.Context(), updateWasteBinReq.ID, &wasteBinEntity)
+		var useCaseErr = w.UpdateWasteBinUsecase.ExecuteUpdateWasteBin(ctx, updateWasteBinReq.ID, &wasteBinEntity)
 		if useCaseErr != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(&fiber.Map{
 				"errors": useCaseErr.Error(),

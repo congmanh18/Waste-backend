@@ -10,6 +10,7 @@ import (
 type UserRepo interface {
 	Save(ctx context.Context, user *entity.User) error
 	Update(ctx context.Context, id string, user *entity.User) error
+	GetByPhone(ctx context.Context, phone string) (*entity.User, error)
 	FindById(ctx context.Context, id string) (*entity.User, error)
 	FindAll(ctx context.Context) (*[]entity.User, error)
 	Delete(ctx context.Context, id string) error
@@ -33,9 +34,17 @@ func (u *userRepoImpl) Update(ctx context.Context, id string, user *entity.User)
 	return u.gorm.WithContext(ctx).Debug().Where("id = ?", id).Updates(&user).Error
 }
 
+func (u *userRepoImpl) GetByPhone(ctx context.Context, phone string) (*entity.User, error) {
+	var user entity.User
+	if err := u.gorm.WithContext(ctx).Debug().Where("phone = ?", phone).First(&user).Error; err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
 func (u *userRepoImpl) FindById(ctx context.Context, id string) (*entity.User, error) {
 	var user entity.User
-	if err := u.gorm.WithContext(ctx).Debug().Where("id = ?", id).First(&user).Error; err != nil { //+
+	if err := u.gorm.WithContext(ctx).Debug().Where("id = ?", id).First(&user).Error; err != nil {
 		return nil, err
 	}
 	return &user, nil

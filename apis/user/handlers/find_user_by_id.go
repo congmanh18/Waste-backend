@@ -1,15 +1,26 @@
 package handler
 
-import "github.com/gofiber/fiber/v2"
+import (
+	"context"
+	"smart-waste/pkgs/res"
+	"time"
+
+	"github.com/gofiber/fiber/v2"
+)
 
 func (u UserHandler) HandlerFindUserByID() fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		userEntity, err := u.FindUserByIDUsecase.ExecuteFindById(c.Context(), c.Params("id"))
+		ctx, cancel := context.WithTimeout(c.Context(), 5*time.Second)
+		defer cancel()
+
+		userEntity, err := u.FindUserByIDUsecase.ExecuteFindById(ctx, c.Params("id"))
 		if err != nil {
-			return c.Status(fiber.StatusNotFound).JSON(&fiber.Map{
-				"error": err.Error(),
-			})
+			res := res.NewRes(fiber.StatusNotFound, "Unable to load user information", false, nil)
+			res.SetError(err)
+			return res.Send(c)
 		}
-		return c.Status(fiber.StatusOK).JSON(userEntity)
+
+		res := res.NewRes(fiber.StatusOK, "User Information: ", true, userEntity)
+		return res.Send(c)
 	}
 }

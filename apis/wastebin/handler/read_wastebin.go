@@ -1,10 +1,18 @@
 package handler
 
-import "github.com/gofiber/fiber/v2"
+import (
+	"context"
+	"time"
+
+	"github.com/gofiber/fiber/v2"
+)
 
 func (w WasteBinHandler) HandlerReadWasteBin() fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		wateBinEntity, err := w.ReadWasteBinUsecase.ReadWasteBinByID(c.Context(), c.Params("id"))
+		ctx, cancel := context.WithTimeout(c.Context(), 5*time.Second)
+		defer cancel()
+
+		wateBinEntity, err := w.ReadWasteBinUsecase.ReadWasteBinByID(ctx, c.Params("id"))
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"error": err.Error(),

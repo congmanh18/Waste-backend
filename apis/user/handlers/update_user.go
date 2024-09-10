@@ -1,19 +1,30 @@
 package handler
 
 import (
+	"context"
 	"smart-waste/apis/user/models/req"
 	"smart-waste/domain/user/entity"
+	"smart-waste/pkgs/res"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 )
 
 func (u UserHandler) HandlerUpdateUser() fiber.Handler {
 	return func(c *fiber.Ctx) error {
+		ctx, cancel := context.WithTimeout(c.Context(), 5*time.Second)
+		defer cancel()
+
 		var updateUserReq = new(req.UpdateUserReq)
 		if err := c.BodyParser(&updateUserReq); err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(&fiber.Map{
-				"error": err.Error(),
-			})
+			res := res.NewRes(
+				fiber.StatusBadRequest,
+				"Failed to parse request body. Please check the format of your input data.",
+				false,
+				nil,
+			)
+			res.SetError(err)
+			return res.Send(c)
 		}
 
 		var userEntity = entity.User{
@@ -25,14 +36,13 @@ func (u UserHandler) HandlerUpdateUser() fiber.Handler {
 			Password:  updateUserReq.Password,
 		}
 
-		var useCaseErr = u.UpdateUserUsecase.ExecuteUpdateUser(c.Context(), updateUserReq.ID, &userEntity)
+		var useCaseErr = u.UpdateUserUsecase.ExecuteUpdateUser(ctx, updateUserReq.ID, &userEntity)
 		if useCaseErr != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(&fiber.Map{
-				"error": useCaseErr.Error(),
-			})
+			res := res.NewRes(fiber.StatusInternalServerError, useCaseErr.Error(), false, nil)
+			return res.Send(c)
 		}
-		return c.Status(fiber.StatusOK).JSON(&fiber.Map{
-			"message": "User updated successfully",
-		})
+
+		res := res.NewRes(fiber.StatusOK, "User updated successfully", true, nil)
+		return res.Send(c)
 	}
 }
