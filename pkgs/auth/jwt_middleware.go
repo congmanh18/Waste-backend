@@ -10,16 +10,13 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-// Secret key để xác minh JWT
-var jwtSecretKey = []byte("your-secret-key")
-
 // VerifyToken xác minh token JWT và trả về claims nếu hợp lệ
 func VerifyToken(ctx context.Context, tokenString string) (*jwt.Token, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("unexpected signing method")
 		}
-		return jwtSecretKey, nil
+		return JwtSecretKey, nil
 	})
 
 	if err != nil || !token.Valid {

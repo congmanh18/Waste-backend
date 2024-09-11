@@ -1,52 +1,55 @@
 package handler
 
 import (
+	tokenRes "smart-waste/apis/user/models/res"
 	"smart-waste/pkgs/auth"
 	"smart-waste/pkgs/res"
-	"time"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gofiber/fiber/v2"
 )
 
 func (u UserHandler) RefreshTokenHandler() fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		refreshToken := c.Get("Refresh-Token")
-		if refreshToken == "" {
-			res := res.NewRes(
-				fiber.StatusUnauthorized,
-				"Missing or invalid refresh token",
-				false,
-				nil,
-			)
+		// Parse the refresh token from request body
+		var refreshTokenReq struct {
+			RefreshToken string `json:"refreshToken"`
+		}
+
+		if err := c.BodyParser(&refreshTokenReq); err != nil {
+			res := res.NewRes(fiber.StatusBadRequest, "Invalid request", false, nil)
 			return res.Send(c)
 		}
 
-		claims, err := auth.ParseToken(refreshToken, "secret-key")
+		// Parse the token claims to validate refresh token
+		token, err := jwt.ParseWithClaims(refreshTokenReq.RefreshToken, &auth.JwtCustomClaims{}, func(token *jwt.Token) (interface{}, error) {
+			return auth.JwtSecretKey, nil
+		})
+
+		if err != nil || !token.Valid {
+			res := res.NewRes(fiber.StatusUnauthorized, "Invalid refresh token", false, nil)
+			return res.Send(c)
+		}
+
+		claims, ok := token.Claims.(*auth.JwtCustomClaims)
+		if !ok || !token.Valid {
+			res := res.NewRes(fiber.StatusUnauthorized, "Invalid token claims", false, nil)
+			return res.Send(c)
+		}
+
+		// Generate a new access token
+		newAccessToken, err := auth.GenerateTokenWithClaims(*claims)
 		if err != nil {
-			res := res.NewRes(
-				fiber.StatusUnauthorized,
-				"Invalid or expired refresh token",
-				false,
-				nil,
-			)
-			res.SetError(err)
+			res := res.NewRes(fiber.StatusInternalServerError, "Failed to generate new access token", false, nil)
 			return res.Send(c)
 		}
 
-		// Generate new access token
-		accessToken, err := auth.GenerateJWTToken(claims.UserId, claims.Role, time.Minute*15)
-		if err != nil {
-			res := res.NewRes(
-				fiber.StatusInternalServerError,
-				"Failed to generate access token",
-				false,
-				nil,
-			)
-			res.SetError(err)
-			return res.Send(c)
+		// Respond with the new access token
+		tokenResponse := tokenRes.TokenResponse{
+			AccessToken: newAccessToken,
 		}
 
-		res := res.NewRes(fiber.StatusOK, "Token refreshed successfully", true, accessToken)
+		res := res.NewRes(fiber.StatusOK, "Access token refreshed successfully", true, tokenResponse)
 		return res.Send(c)
 	}
 }

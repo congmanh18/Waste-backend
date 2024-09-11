@@ -2,7 +2,7 @@ package handler
 
 import (
 	"context"
-	req "smart-waste/apis/wastebin/model"
+	req "smart-waste/apis/wastebin/models"
 	"smart-waste/domain/wastebin/entity"
 	"time"
 

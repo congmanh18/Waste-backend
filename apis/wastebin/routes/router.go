@@ -1,7 +1,7 @@
 package routes
 
 import (
-	"smart-waste/apis/wastebin/handler"
+	handler "smart-waste/apis/wastebin/handlers"
 
 	"github.com/gofiber/fiber/v2"
 )

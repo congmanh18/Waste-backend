@@ -3,11 +3,13 @@ package handler
 import (
 	"context"
 	"smart-waste/apis/user/models/req"
+	tokenRes "smart-waste/apis/user/models/res"
 	"smart-waste/pkgs/auth"
 	"smart-waste/pkgs/res"
 	"smart-waste/pkgs/security"
 	"time"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -52,15 +54,27 @@ func (u UserHandler) HandlerLogin() fiber.Handler {
 			return res.Send(c)
 		}
 
-		// Generate JWT tokens
-		accessToken, err := auth.GenerateJWTToken(foundUser.ID, *foundUser.Role, time.Minute*15) // Access token 15 mins
+		// Create JWT custom claims
+		claims := auth.JwtCustomClaims{
+			ID:    foundUser.ID,
+			Role:  *foundUser.Role,
+			Phone: *foundUser.Phone,
+			StandardClaims: jwt.StandardClaims{
+				ExpiresAt: time.Now().Add(time.Minute * 15).Unix(), // 15 mins expiration
+			},
+		}
+
+		// Generate JWT tokens with claims
+		accessToken, err := auth.GenerateTokenWithClaims(claims)
 		if err != nil {
 			res := res.NewRes(fiber.StatusInternalServerError, "Failed to generate access token", false, nil)
 			res.SetError(err)
 			return res.Send(c)
 		}
 
-		refreshToken, err := auth.GenerateJWTToken(foundUser.ID, *foundUser.Role, time.Hour*24*7) // Refresh token 7 days
+		// Refresh token with longer expiration
+		claims.StandardClaims.ExpiresAt = time.Now().Add(time.Hour * 24 * 7).Unix() // 7 days expiration
+		refreshToken, err := auth.GenerateTokenWithClaims(claims)
 		if err != nil {
 			res := res.NewRes(fiber.StatusInternalServerError, "Failed to generate refresh token", false, nil)
 			res.SetError(err)
@@ -77,10 +91,9 @@ func (u UserHandler) HandlerLogin() fiber.Handler {
 		}
 
 		// Send response with both tokens
-		// Sửa sau
-		tokenResponse := map[string]string{
-			"accessToken":  accessToken,
-			"refreshToken": refreshToken,
+		tokenResponse := tokenRes.TokenResponse{
+			AccessToken:  accessToken,
+			RefreshToken: refreshToken,
 		}
 
 		res := res.NewRes(fiber.StatusOK, "User login successful", true, tokenResponse)
