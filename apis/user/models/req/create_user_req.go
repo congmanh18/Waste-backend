@@ -8,6 +8,6 @@ type CreateUserReq struct {
 	Role      *string `json:"role"`
 	Category  *string `json:"category"`
 	Email     *string `json:"email"`
-	Phone     string  `json:"phone" validate:"required"`
+	Phone     *string `json:"phone" validate:"required"`
 	Password  *string `json:"password"`
 }

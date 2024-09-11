@@ -1,8 +1,12 @@
 package handler
 
 import (
+	"context"
 	"smart-waste/apis/user/models/req"
 	"smart-waste/domain/user/entity"
+	"smart-waste/pkgs/res"
+	"smart-waste/pkgs/security"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -11,17 +15,45 @@ import (
 // CreateUser Handles creating
 func (u UserHandler) HandlerCreateUser() fiber.Handler {
 	return func(c *fiber.Ctx) error {
+		ctx, cancel := context.WithTimeout(c.Context(), 5*time.Second)
+		defer cancel()
+
 		var createUserReq = new(req.CreateUserReq)
 		if err := c.BodyParser(&createUserReq); err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(&fiber.Map{
-				"error": err.Error(),
-			})
+			res := res.NewRes(
+				fiber.StatusBadRequest,
+				"Failed to parse request body. Please check the format of your input data.",
+				false,
+				nil,
+			)
+			res.SetError(err)
+			return res.Send(c)
 		}
 
-		userID := uuid.New().String()
+		var _, err = u.GetUserByPhoneUsecase.ExecuteGetUserByPhone(ctx, createUserReq.Phone)
+		if err != nil {
+			// User already exists
+			res := res.NewRes(fiber.StatusConflict, "User with the same phone already exists", false, nil)
+			res.SetError(err)
+			return res.Send(c)
+		}
+
+		hashedPassword, err := security.HashAndSalt([]byte(*createUserReq.Password))
+		if err != nil {
+			res := res.NewRes(fiber.StatusInternalServerError, "Failed to hash and salt password", false, nil)
+			res.SetError(err)
+			return res.Send(c)
+		}
+
+		userID, err := uuid.NewV7()
+		if err != nil {
+			res := res.NewRes(fiber.StatusInternalServerError, "Failed to generate UUID", false, nil)
+			res.SetError(err)
+			return res.Send(c)
+		}
 
 		var userEntity = entity.User{
-			ID:        userID,
+			ID:        userID.String(),
 			FirstName: createUserReq.FirstName,
 			LastName:  createUserReq.LastName,
 			Gender:    createUserReq.Gender,
@@ -29,17 +61,19 @@ func (u UserHandler) HandlerCreateUser() fiber.Handler {
 			Category:  createUserReq.Category,
 			Email:     createUserReq.Email,
 			Phone:     createUserReq.Phone,
-			Password:  createUserReq.Password,
+			Password:  &hashedPassword,
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
 		}
 
-		var useCaseErr = u.CreateUserUsecase.ExecuteCreateUser(c.Context(), &userEntity)
+		var useCaseErr = u.CreateUserUsecase.ExecuteCreateUser(ctx, &userEntity)
 		if useCaseErr != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(&fiber.Map{
-				"error": useCaseErr.Error(),
-			})
+			res := res.NewRes(fiber.StatusInternalServerError, "Failed to create user", false, nil)
+			res.SetError(useCaseErr)
+			return res.Send(c)
 		}
-		return c.Status(fiber.StatusOK).JSON(&fiber.Map{
-			"message": "OK",
-		})
+
+		res := res.NewRes(fiber.StatusOK, "User created successfully", true, userEntity)
+		return res.Send(c)
 	}
 }

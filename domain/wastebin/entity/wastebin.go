@@ -1,5 +1,7 @@
 package entity
 
+import "time"
+
 type WasteBin struct {
 	ID          string `gorm:"primaryKey"`
 	Weight      *string
@@ -9,4 +11,5 @@ type WasteBin struct {
 	Address     *string
 	Latitude    *string
 	Longitude   *string
+	Timestamp   *time.Time
 }

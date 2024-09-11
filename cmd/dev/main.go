@@ -2,11 +2,18 @@ package main
 
 import (
 	"log/slog"
-	handler "smart-waste/apis/user/handlers"
-	route "smart-waste/apis/user/routes"
-	"smart-waste/domain/user/entity"
+	userHandler "smart-waste/apis/user/handlers"
+	wastebinHandler "smart-waste/apis/wastebin/handlers"
 
-	"smart-waste/domain/user/usecase"
+	userRoutes "smart-waste/apis/user/routes"
+	wastebinRoutes "smart-waste/apis/wastebin/routes"
+
+	userUsecase "smart-waste/domain/user/usecase"
+	wastebinUsecase "smart-waste/domain/wastebin/usecase"
+
+	userEntity "smart-waste/domain/user/entity"
+	wasteBinEntity "smart-waste/domain/wastebin/entity"
+
 	"smart-waste/pkgs/db"
 
 	"github.com/gofiber/fiber/v2"
@@ -17,23 +24,19 @@ var enableMigration = true
 
 func main() {
 	slog.Info("service running on port 3000")
-	// 1. init fiber instance
 	app := fiber.New()
 
-	// 2. connect to database
-	var db = connectDB()
+	// Connect to database
+	db := connectAndMigrateDB()
 
-	// 3. init route
-	var userHander = handler.UserHandler{
-		CreateUserUsecase: usecase.NewCreateUserUsecase(db),
-	}
-	route.SetupUserRoutes(app, userHander)
+	// Initialize routes
+	initRoutes(app, db)
 
 	app.Listen(":3000")
 }
 
-func connectDB() *gorm.DB {
-	var conn = db.Connection{
+func connectAndMigrateDB() *gorm.DB {
+	conn := db.Connection{
 		Host:     "localhost",
 		User:     "postgres",
 		Password: "231002",
@@ -41,19 +44,43 @@ func connectDB() *gorm.DB {
 		Port:     "5432",
 	}
 
-	var gormDB, err = db.NewDB(conn)
+	gormDB, err := db.NewDB(conn)
 	if err != nil {
 		slog.Error("failed to connect to database", "error", err)
 		panic(err)
 	}
 
 	if enableMigration {
-		err := gormDB.AutoMigrate(&entity.User{})
-		if err != nil {
-			slog.Error("failed to migrate database", "error", err)
-			return nil
-		}
+		migrateDB(gormDB)
 	}
 
 	return gormDB
+}
+
+func migrateDB(db *gorm.DB) {
+	entities := []interface{}{
+		&userEntity.User{},
+		&wasteBinEntity.WasteBin{},
+	}
+
+	for _, entity := range entities {
+		if err := db.AutoMigrate(entity); err != nil {
+			slog.Error("failed to migrate database", "entity", entity, "error", err)
+		}
+	}
+}
+
+func initRoutes(app *fiber.App, db *gorm.DB) {
+	// Init handlers and routes with alias names to avoid conflict
+	userHandler := userHandler.UserHandler{
+		CreateUserUsecase: userUsecase.NewCreateUserUsecase(db),
+	}
+
+	wastebinHandler := wastebinHandler.WasteBinHandler{
+		CreateWasteBinUsecase: wastebinUsecase.NewCreateWasteBinUsecase(db),
+	}
+
+	// Register user and wastebin routes
+	userRoutes.SetupUserRoutes(app, userHandler)
+	wastebinRoutes.SetupWasteBinRoutes(app, wastebinHandler)
 }

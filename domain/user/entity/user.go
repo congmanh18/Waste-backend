@@ -14,7 +14,7 @@ type User struct {
 	Role         *string
 	Category     *string
 	Email        *string `gorm:"unique"`
-	Phone        string  `gorm:"unique"`
+	Phone        *string `gorm:"unique"`
 	Username     *string `gorm:"unique"`
 	Password     *string
 	Token        *string
@@ -24,7 +24,7 @@ type User struct {
 }
 
 func (u User) isPhoneValid() bool {
-	return len(u.Phone) == 10
+	return len(*u.Phone) == 10
 }
 
 func (u User) isEmailValid() bool {
