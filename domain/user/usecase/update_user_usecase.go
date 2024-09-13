@@ -19,5 +19,5 @@ func NewUpdateUserUsecase(db *gorm.DB) *UpdateUserUsecase {
 }
 
 func (u *UpdateUserUsecase) ExecuteUpdateUser(ctx context.Context, id string, user *entity.User) error {
-	return u.userRepo.Update(ctx, id, user)
+	return u.userRepo.Update(ctx, &id, user)
 }

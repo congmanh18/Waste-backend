@@ -18,5 +18,5 @@ func NewDeleteReportUsecase(db *gorm.DB) DeleteReportUsecase {
 }
 
 func (u *DeleteReportUsecase) ExecuteDeleteReport(ctx context.Context, id string) error {
-	return u.reportRepo.Delete(ctx, id)
+	return u.reportRepo.Delete(ctx, &id)
 }

@@ -19,5 +19,5 @@ func NewFindUserByIDUsecase(db *gorm.DB) *FindUserByIDUsecase {
 }
 
 func (f *FindUserByIDUsecase) ExecuteFindById(ctx context.Context, id string) (*entity.User, error) {
-	return f.userRepo.FindById(ctx, id)
+	return f.userRepo.FindById(ctx, &id)
 }

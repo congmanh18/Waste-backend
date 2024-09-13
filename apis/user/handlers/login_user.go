@@ -2,12 +2,16 @@ package handler
 
 import (
 	"context"
+	"fmt"
 	"smart-waste/apis/user/models/req"
 	tokenRes "smart-waste/apis/user/models/res"
 	"smart-waste/pkgs/auth"
 	"smart-waste/pkgs/res"
 	"smart-waste/pkgs/security"
+	validate "smart-waste/pkgs/validator"
 	"time"
+
+	"github.com/go-playground/validator/v10"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gofiber/fiber/v2"
@@ -31,15 +35,48 @@ func (u UserHandler) HandlerLogin() fiber.Handler {
 			return res.Send(c)
 		}
 
-		// Find user by phone number
-		var foundUser, useCaseErr = u.GetUserByPhoneUsecase.ExecuteGetUserByPhone(ctx, &loginUserReq.Phone)
-		if useCaseErr != nil || foundUser == nil {
+		// Validate các field trong LoginUserReq
+		err := validate.Validate.Struct(loginUserReq)
+		if err != nil {
+			if validationErrors, ok := err.(validator.ValidationErrors); ok {
+				var errorMessages []string
+				for _, validationErr := range validationErrors {
+					msg := fmt.Sprintf("Field: %s, Error: %s", validationErr.Field(), validationErr.Tag())
+					errorMessages = append(errorMessages, msg)
+				}
+
+				// Trả về danh sách các lỗi validation...
+				// Note chú ý data là lỗi
+				res := res.NewRes(
+					fiber.StatusBadRequest,
+					"Validation failed",
+					false,
+					errorMessages,
+				)
+				return res.Send(c)
+			}
+
 			res := res.NewRes(
-				fiber.StatusUnauthorized,
-				"User not found or invalid credentials",
+				fiber.StatusInternalServerError,
+				"Internal server error",
 				false,
 				nil,
 			)
+
+			res.SetError(err)
+			return res.Send(c)
+		}
+
+		// Find user by phone number
+		var foundUser, useCaseErr = u.GetUserByPhoneUsecase.ExecuteGetUserByPhone(ctx, &loginUserReq.Phone)
+		if useCaseErr != nil {
+			res := res.NewRes(fiber.StatusInternalServerError, "Error while finding user", false, nil)
+			res.SetError(useCaseErr)
+			return res.Send(c)
+		}
+
+		if foundUser == nil {
+			res := res.NewRes(fiber.StatusUnauthorized, "User not found", false, nil)
 			return res.Send(c)
 		}
 
@@ -64,6 +101,14 @@ func (u UserHandler) HandlerLogin() fiber.Handler {
 			},
 		}
 
+		// Create JWT custom refresh_token claims
+		rf_claims := auth.JwtCustomClaims{
+			ID: foundUser.ID,
+			StandardClaims: jwt.StandardClaims{
+				ExpiresAt: time.Now().Add(time.Hour * 24 * 7).Unix(), // 15 mins expiration
+			},
+		}
+
 		// Generate JWT tokens with claims
 		accessToken, err := auth.GenerateTokenWithClaims(claims)
 		if err != nil {
@@ -73,8 +118,7 @@ func (u UserHandler) HandlerLogin() fiber.Handler {
 		}
 
 		// Refresh token with longer expiration
-		claims.StandardClaims.ExpiresAt = time.Now().Add(time.Hour * 24 * 7).Unix() // 7 days expiration
-		refreshToken, err := auth.GenerateTokenWithClaims(claims)
+		refreshToken, err := auth.GenerateTokenWithClaims(rf_claims)
 		if err != nil {
 			res := res.NewRes(fiber.StatusInternalServerError, "Failed to generate refresh token", false, nil)
 			res.SetError(err)
