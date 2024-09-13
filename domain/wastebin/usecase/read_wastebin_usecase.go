@@ -20,5 +20,5 @@ func NewReadWasteBinUsecase(db *gorm.DB) *ReadWasteBinUsecase {
 
 // ReadWasteBinByID reads a waste bin by its ID.
 func (r *ReadWasteBinUsecase) ReadWasteBinByID(ctx context.Context, id string) (*entity.WasteBin, error) {
-	return r.wasteBinRepo.FindById(ctx, id)
+	return r.wasteBinRepo.FindById(ctx, &id)
 }

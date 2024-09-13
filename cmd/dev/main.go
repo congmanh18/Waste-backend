@@ -11,6 +11,7 @@ import (
 	userUsecase "smart-waste/domain/user/usecase"
 	wastebinUsecase "smart-waste/domain/wastebin/usecase"
 
+	reportEntity "smart-waste/domain/report/entity"
 	userEntity "smart-waste/domain/user/entity"
 	wasteBinEntity "smart-waste/domain/wastebin/entity"
 
@@ -61,6 +62,7 @@ func migrateDB(db *gorm.DB) {
 	entities := []interface{}{
 		&userEntity.User{},
 		&wasteBinEntity.WasteBin{},
+		&reportEntity.Report{},
 	}
 
 	for _, entity := range entities {

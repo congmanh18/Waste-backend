@@ -20,5 +20,5 @@ func NewUpdateWasteBinUsecase(db *gorm.DB) *UpdateWasteBinUsecase {
 
 // Update updates a waste bin with the provided ID.
 func (uc *UpdateWasteBinUsecase) ExecuteUpdateWasteBin(ctx context.Context, id string, wasteBin *entity.WasteBin) error {
-	return uc.wasteBinRepo.Update(ctx, id, wasteBin)
+	return uc.wasteBinRepo.Update(ctx, &id, wasteBin)
 }

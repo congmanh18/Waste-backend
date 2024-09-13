@@ -19,5 +19,5 @@ func NewGetUserByPhoneUsecase(db *gorm.DB) *GetUserByPhoneUsecase {
 }
 
 func (f *GetUserByPhoneUsecase) ExecuteGetUserByPhone(ctx context.Context, phone *string) (*entity.User, error) {
-	return f.userRepo.GetByPhone(ctx, *phone)
+	return f.userRepo.GetByPhone(ctx, phone)
 }

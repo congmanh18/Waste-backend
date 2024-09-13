@@ -18,5 +18,5 @@ func NewDeleteUserUsecase(db *gorm.DB) *DeleteWasteBinUsecase {
 }
 
 func (d *DeleteWasteBinUsecase) ExecuteDeleteWasteBin(ctx context.Context, id string) error {
-	return d.wasteBinRepo.Delete(ctx, id)
+	return d.wasteBinRepo.Delete(ctx, &id)
 }

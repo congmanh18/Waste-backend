@@ -19,5 +19,5 @@ func NewCreateReportUsecase(db *gorm.DB) *CreateReportUsecase {
 }
 
 func (c *CreateReportUsecase) ExecuteCreateReport(ctx context.Context, report entity.Report) error {
-	return c.reportRepo.Save(ctx, report)
+	return c.reportRepo.Save(ctx, &report)
 }
