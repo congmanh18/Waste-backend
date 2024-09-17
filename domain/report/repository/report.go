@@ -35,9 +35,25 @@ func (r *reportRepoImpl) GetByID(ctx context.Context, id *string) error {
 	return r.gorm.First(&entity.Report{}, id).Error
 }
 
+func (r *reportRepoImpl) GetAllByUserID(ctx context.Context, userID *string) (*[]entity.Report, error) {
+	var reportList []entity.Report
+	if err := r.gorm.WithContext(ctx).Debug().Where("user_id = ?", userID).Find(&reportList).Error; err != nil {
+		return nil, err
+	}
+	return &reportList, nil
+}
+
+func (r *reportRepoImpl) GetAllByWasteBinID(ctx context.Context, wasteBinID *string) (*[]entity.Report, error) {
+	var reportList []entity.Report
+	if err := r.gorm.WithContext(ctx).Debug().Where("wastebin_id = ?", wasteBinID).Find(&reportList).Error; err != nil {
+		return nil, err
+	}
+	return &reportList, nil
+}
+
 func (r *reportRepoImpl) GetByDate(ctx context.Context, date *string) (*[]entity.Report, error) {
 	var reports []entity.Report
-	err := r.gorm.Where("date =?", date).Find(&reports).Error
+	err := r.gorm.WithContext(ctx).Debug().Where("DATE(created_at) = ?", date).Find(&reports).Error
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +62,7 @@ func (r *reportRepoImpl) GetByDate(ctx context.Context, date *string) (*[]entity
 
 func (r *reportRepoImpl) GetAll(ctx context.Context) (*[]entity.Report, error) {
 	var reports []entity.Report
-	err := r.gorm.Find(&reports).Error
+	err := r.gorm.WithContext(ctx).Debug().Find(&reports).Error
 	if err != nil {
 		return nil, err
 	}

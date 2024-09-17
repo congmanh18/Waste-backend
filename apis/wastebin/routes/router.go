@@ -7,8 +7,11 @@ import (
 )
 
 func SetupWasteBinRoutes(app *fiber.App, wasteBinHandler handler.WasteBinHandler) {
-	app.Post("/bin", wasteBinHandler.HandlerCreateWasteBin())
-	app.Put("/bin/:id", wasteBinHandler.HandlerUpdateWasteBin())
-	app.Delete("/bin/:id", wasteBinHandler.HandlerDeleteWasteBin())
-	app.Get("/bin/:id", wasteBinHandler.HandlerReadWasteBin())
+	var binRoutes = app.Group("/wastebin")
+
+	binRoutes.Get("/ws", wasteBinHandler.WebSocketHandler())
+	binRoutes.Post("/", wasteBinHandler.HandlerCreateWasteBin())
+	binRoutes.Put("/:id", wasteBinHandler.HandlerUpdateWasteBin())
+	binRoutes.Delete("/:id", wasteBinHandler.HandlerDeleteWasteBin())
+	binRoutes.Get("/:id", wasteBinHandler.HandlerReadWasteBin())
 }

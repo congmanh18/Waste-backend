@@ -45,7 +45,7 @@ func connectAndMigrateDB() *gorm.DB {
 		Port:     "5432",
 	}
 
-	gormDB, err := db.NewDB(conn)
+	gormDB, err := db.New(conn)
 	if err != nil {
 		slog.Error("failed to connect to database", "error", err)
 		panic(err)
@@ -80,6 +80,9 @@ func initRoutes(app *fiber.App, db *gorm.DB) {
 
 	wastebinHandler := wastebinHandler.WasteBinHandler{
 		CreateWasteBinUsecase: wastebinUsecase.NewCreateWasteBinUsecase(db),
+		UpdateWasteBinUsecase: wastebinUsecase.NewUpdateWasteBinUsecase(db),
+		DeleteWasteBinUsecase: wastebinUsecase.NewDeleteUserUsecase(db),
+		ReadWasteBinUsecase:   wastebinUsecase.NewReadWasteBinUsecase(db),
 	}
 
 	// Register user and wastebin routes
