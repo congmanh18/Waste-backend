@@ -2,6 +2,8 @@ package handler
 
 import (
 	"context"
+
+	"smart-waste/pkgs/res"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -14,10 +16,13 @@ func (w WasteBinHandler) HandlerReadWasteBin() fiber.Handler {
 
 		wateBinEntity, err := w.ReadWasteBinUsecase.ReadWasteBinByID(ctx, c.Params("id"))
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": err.Error(),
-			})
+			res := res.NewRes(fiber.StatusNotFound, "Unable to load wastebin information", false, nil)
+			res.SetError(err)
+			return res.Send(c)
 		}
-		return c.Status(fiber.StatusOK).JSON(wateBinEntity)
+
+
+		res := res.NewRes(fiber.StatusOK, "WasteBin Information: ", true, wateBinEntity)
+		return res.Send(c)
 	}
 }

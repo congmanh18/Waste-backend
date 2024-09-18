@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WasteBin Realtime</title>
+</head>
+<body>
+    <script>
+        // Kết nối WebSocket đến API
+        var ws = new WebSocket("ws://localhost:3000/ws");
+        // Gửi dữ liệu cập nhật WasteBin từ client
+        ws.onopen = function() {
+            console.log("WebSocket opened");
+
+            // Dữ liệu mẫu để gửi đến server
+            var data = {
+                ID: "bin123",
+                Weight: 10.5,
+                FilledLevel: 75.0,
+                AirQuality: 12,
+                WaterLevel: 5.0,
+                Address: "123 Main St",
+                Latitude: 10.123456,
+                Longitude: 106.123456
+            };
+
+            // Gửi dữ liệu cập nhật
+            ws.send(JSON.stringify(data));
+        };
+
+        // Nhận dữ liệu từ server
+        ws.onmessage = function(event) {
+            console.log("Message from server:", event.data);
+        };
+
+        // Đóng kết nối khi WebSocket bị ngắt
+        ws.onclose = function() {
+            console.log("WebSocket closed");
+        };
+
+        // Xử lý lỗi
+        ws.onerror = function(error) {
+            console.log("WebSocket error:", error);
+        };
+    </script>
+</body>
+</html>

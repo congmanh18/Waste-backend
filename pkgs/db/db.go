@@ -9,7 +9,7 @@ import (
 
 var GORM *gorm.DB
 
-func NewDB(conn Connection) (*gorm.DB, error) {
+func New(conn Connection) (*gorm.DB, error) {
 	fmt.Println("start connect to database...")
 	if err := conn.HasError(); err != nil {
 		return nil, fmt.Errorf("connnection error: %v", err)

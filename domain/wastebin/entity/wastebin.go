@@ -11,5 +11,9 @@ type WasteBin struct {
 	Address     *string
 	Latitude    *string
 	Longitude   *string
-	Timestamp   *time.Time
+	Timestamp   time.Time
+	Day         *int
+	Hour        *int
+	Minute      *int
+	Second      *int
 }

@@ -8,11 +8,11 @@ import (
 )
 
 type WasteBinRepo interface {
-	Save(ctx context.Context, wastebin *entity.WasteBin) error               //
-	Update(ctx context.Context, id *string, wastebin *entity.WasteBin) error //
-	FindById(ctx context.Context, id *string) (*entity.WasteBin, error)      //
-	FindAll(ctx context.Context) (*[]entity.WasteBin, error)                 //
-	Delete(ctx context.Context, id *string) error                            //
+	Save(ctx context.Context, wastebin *entity.WasteBin) error
+	Update(ctx context.Context, id *string, wastebin *entity.WasteBin) error
+	FindById(ctx context.Context, id *string) (*entity.WasteBin, error)
+	FindAll(ctx context.Context) (*[]entity.WasteBin, error)
+	Delete(ctx context.Context, id *string) error
 }
 
 type wasteBinRepoImpl struct {

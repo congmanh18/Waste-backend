@@ -41,6 +41,7 @@ func (u WasteBinHandler) HandlerCreateWasteBin() fiber.Handler {
 			Address:     createWasteBinReq.Address,
 			Latitude:    createWasteBinReq.Latitude,
 			Longitude:   createWasteBinReq.Longitude,
+			Timestamp:   time.Now(),
 		}
 
 		var useCaseErr = u.CreateWasteBinUsecase.ExecuteCreateWasteBin(ctx, &wasteBinEntity)
