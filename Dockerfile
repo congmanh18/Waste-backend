@@ -1,9 +1,5 @@
-
-
-
-
 ##### Stage 1 - Build Go application #####
-FROM golang:1.20-alpine as builder
+FROM golang:1.23-alpine as builder
 
 WORKDIR /project
 
@@ -14,10 +10,8 @@ RUN go mod download
 # Copy the entire source code
 COPY . .
 
-ENV CGO_ENABLED=0
-
 # Build the Go application
-RUN go build -o /project/app ./cmd/dev/main.go
+RUN go build -o /project/app ./main.go
 
 
 ##### Stage 2 - Final #####
@@ -33,6 +27,9 @@ COPY --from=builder /project/app .
 # Copy the Python script and model
 COPY pkgs/python/script.py /dist/pkgs/python/script.py
 COPY pkgs/python/model.pkl /dist/pkgs/python/model.pkl
+
+# Install build tools and dependencies
+RUN apk add --no-cache gcc musl-dev python3-dev g++ build-base
 
 # Install necessary Python dependencies
 RUN pip install joblib pandas scikit-learn

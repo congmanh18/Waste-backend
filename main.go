@@ -2,12 +2,14 @@ package main
 
 import (
 	"log/slog"
+	"os"
 	userHandler "smart-waste/apis/user/handlers"
 	wastebinHandler "smart-waste/apis/wastebin/handlers"
 
-	_ "smart-waste/docs" // Thư mục tài liệu Swagger
+	_ "smart-waste/docs"
 
 	"github.com/gofiber/swagger"
+	"github.com/joho/godotenv"
 
 	userRoutes "smart-waste/apis/user/routes"
 	wastebinRoutes "smart-waste/apis/wastebin/routes"
@@ -66,14 +68,23 @@ func main() {
 }
 
 func connectAndMigrateDB() *gorm.DB {
-	conn := db.Connection{
-		Host:     "14.225.255.120",
-		User:     "microlap",
-		Password: "123456",
-		DBName:   "microlap",
-		Port:     "5432",
+	// Load file .env
+	err := godotenv.Load()
+	if err != nil {
+		slog.Error("Error loading .env file", "error", err)
+		panic("Failed to load .env file")
 	}
 
+	// Lấy thông tin kết nối từ biến môi trường
+	conn := db.Connection{
+		Host:     os.Getenv("DB_HOST"),
+		User:     os.Getenv("DB_USER"),
+		Password: os.Getenv("DB_PASSWORD"),
+		DBName:   os.Getenv("DB_NAME"),
+		Port:     os.Getenv("DB_PORT"),
+	}
+
+	// Kết nối tới cơ sở dữ liệu
 	gormDB, err := db.New(conn)
 	if err != nil {
 		slog.Error("failed to connect to database", "error", err)
@@ -86,7 +97,6 @@ func connectAndMigrateDB() *gorm.DB {
 
 	return gormDB
 }
-
 func migrateDB(db *gorm.DB) {
 	entities := []interface{}{
 		&userEntity.User{},
