@@ -1,17 +1,11 @@
-elasticsearch
-reddit ???
-Kibana(UI)???
-Fluent-bit???
-stdout????
+# Smart Waste Management System
 
-
-uber-go/zap???
-
-slog??? keyword search slog golang
-
-// jwt, phân quyền
-
-
+```
+go mod init smart-waste
+```
+```
+go mod tidy
+```
 ### 1. **Dự đoán thời gian thu gom rác**
    - **Vấn đề**: Dự đoán thời gian mà thùng rác sẽ đầy dựa trên các yếu tố như trọng lượng (`Weight`), mức độ lấp đầy (`FilledLevel`), và các thông số môi trường khác (`AirQuality`, `WaterLevel`).
    - **Thuật toán**: Hồi quy tuyến tính (Linear Regression) hoặc cây quyết định (Decision Tree Regression) có thể được sử dụng để dự đoán thời gian thu gom.
@@ -45,3 +39,17 @@ slog??? keyword search slog golang
 4. **Triển khai mô hình**: Sau khi mô hình được huấn luyện, bạn có thể triển khai mô hình này dưới dạng một API sử dụng `net/http` trong Golang để tích hợp vào hệ thống của bạn.
 
 Việc sử dụng học máy có thể mang lại nhiều giá trị cho hệ thống quản lý rác thông minh, từ việc dự đoán chính xác thời gian thu gom đến tối ưu hóa lộ trình thu gom.
+
+
+elasticsearch
+reddit ???
+Kibana(UI)???
+Fluent-bit???
+stdout????
+
+
+uber-go/zap???
+
+slog??? keyword search slog golang
+
+// jwt, phân quyền
