@@ -33,15 +33,15 @@ func (u WasteBinHandler) HandlerCreateWasteBin() fiber.Handler {
 		wasteBinID, _ := uuid.NewV7()
 
 		var wasteBinEntity = entity.WasteBin{
-			ID:          wasteBinID.String(),
-			Weight:      createWasteBinReq.Weight,
-			FilledLevel: createWasteBinReq.FilledLevel,
-			AirQuality:  createWasteBinReq.AirQuality,
-			WaterLevel:  createWasteBinReq.WaterLevel,
-			Address:     createWasteBinReq.Address,
-			Latitude:    createWasteBinReq.Latitude,
-			Longitude:   createWasteBinReq.Longitude,
-			Timestamp:   time.Now(),
+			ID:            wasteBinID.String(),
+			Weight:        createWasteBinReq.Weight,
+			RemainingFill: createWasteBinReq.RemainingFill,
+			AirQuality:    createWasteBinReq.AirQuality,
+			WaterLevel:    createWasteBinReq.WaterLevel,
+			Address:       createWasteBinReq.Address,
+			Latitude:      createWasteBinReq.Latitude,
+			Longitude:     createWasteBinReq.Longitude,
+			Timestamp:     time.Now(),
 		}
 
 		var useCaseErr = u.CreateWasteBinUsecase.ExecuteCreateWasteBin(ctx, &wasteBinEntity)

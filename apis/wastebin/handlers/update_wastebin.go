@@ -6,7 +6,6 @@ import (
 	"math"
 	req "smart-waste/apis/wastebin/models"
 	"smart-waste/domain/wastebin/entity"
-	"smart-waste/pkgs/python"
 	"smart-waste/pkgs/res"
 	"strconv"
 	"time"
@@ -16,10 +15,9 @@ import (
 
 func (w WasteBinHandler) HandlerUpdateWasteBin() fiber.Handler {
 	return func(c *fiber.Ctx) error {
-
 		ctx, cancel := context.WithTimeout(c.Context(), 5*time.Second)
-
 		defer cancel()
+
 		currentTime := time.Now()
 
 		var updateWasteBinReq = new(req.CreateWasteBinReq)
@@ -38,14 +36,14 @@ func (w WasteBinHandler) HandlerUpdateWasteBin() fiber.Handler {
 		}
 
 		var wasteBinEntity = entity.WasteBin{
-			ID:          ID,
-			Weight:      updateWasteBinReq.Weight,
-			FilledLevel: updateWasteBinReq.FilledLevel,
-			AirQuality:  updateWasteBinReq.AirQuality,
-			WaterLevel:  updateWasteBinReq.WaterLevel,
-			Address:     updateWasteBinReq.Address,
-			Latitude:    updateWasteBinReq.Latitude,
-			Longitude:   updateWasteBinReq.Longitude,
+			ID:            ID,
+			Weight:        updateWasteBinReq.Weight,
+			RemainingFill: updateWasteBinReq.RemainingFill,
+			AirQuality:    updateWasteBinReq.AirQuality,
+			WaterLevel:    updateWasteBinReq.WaterLevel,
+			Address:       updateWasteBinReq.Address,
+			Latitude:      updateWasteBinReq.Latitude,
+			Longitude:     updateWasteBinReq.Longitude,
 		}
 
 		// Check if Timestamp exists in wasteBinEntity
@@ -54,35 +52,25 @@ func (w WasteBinHandler) HandlerUpdateWasteBin() fiber.Handler {
 			return res.Send(c)
 		}
 
-		timeSinceStart := currentTime.Sub(wateBinDB.Timestamp).Seconds()
-
-		output, _ := python.PassDataGoToPy(
-			*updateWasteBinReq.Weight,
-			*updateWasteBinReq.AirQuality,
-			*updateWasteBinReq.WaterLevel,
-			fmt.Sprintf("%.2f", timeSinceStart)) // Limit the decimal places
+		output, _ := EstimatedTimeToFull(wateBinDB.Timestamp, currentTime, *wateBinDB.RemainingFill, *updateWasteBinReq.RemainingFill)
+		// if err != nil {
+		// 	res := res.NewRes(fiber.StatusBadRequest, fmt.Sprintf("Error calculating time to full: %v", err), false, nil)
+		// 	return res.Send(c)
+		// }
 
 		// xem lại
-		filledLevel, err := strconv.ParseFloat(*updateWasteBinReq.FilledLevel, 64)
+		filledLevel, err := strconv.ParseFloat(*updateWasteBinReq.RemainingFill, 64)
 		if err != nil {
 			res := res.NewRes(
 				fiber.StatusBadRequest,
-				fmt.Sprintf("Error converting FilledLevel ('%s') to float64: %v", *updateWasteBinReq.FilledLevel, err),
+				fmt.Sprintf("Error converting FilledLevel ('%s') to float64: %v", *updateWasteBinReq.RemainingFill, err),
 				false,
 				nil)
 			return res.Send(c)
 		}
-		outputFloat, err := strconv.ParseFloat(output, 64)
-		if err != nil {
-			res := res.NewRes(
-				fiber.StatusBadRequest,
-				fmt.Sprintf("Error converting output ('%s') to float64: %v", output, err),
-				false,
-				nil)
-			return res.Send(c)
-		}
+
 		// để tạm
-		day, hour, minute, second, _ := predictTimeUntilFull(filledLevel, outputFloat)
+		day, hour, minute, second, _ := predictTimeUntilFull(filledLevel, output)
 
 		wasteBinEntity.Day = &day
 		wasteBinEntity.Hour = &hour
@@ -99,6 +87,28 @@ func (w WasteBinHandler) HandlerUpdateWasteBin() fiber.Handler {
 		res := res.NewRes(fiber.StatusOK, "Waste bin updated successfully", true, wasteBinEntity)
 		return res.Send(c)
 	}
+}
+
+func EstimatedTimeToFull(previousTimestamp, currentTimestamp time.Time, previousRemainingFill, currentRemainingFill string) (float64, error) {
+	previousFill, err := strconv.ParseFloat(previousRemainingFill, 64)
+	if err != nil {
+		return 0, fmt.Errorf("error converting previousRemainingFill to float64: %v", err)
+	}
+
+	currentFill, err := strconv.ParseFloat(currentRemainingFill, 64)
+	if err != nil {
+		return 0, fmt.Errorf("error converting currentRemainingFill to float64: %v", err)
+	}
+
+	timeDiff := currentTimestamp.Sub(previousTimestamp).Seconds()
+	remainingFillDiff := math.Abs(previousFill - currentFill)
+
+	if remainingFillDiff == 0 {
+		return 0, fmt.Errorf("the remaining fill difference is zero, cannot divide by zero")
+	}
+
+	output := timeDiff * (math.Abs(currentFill) / remainingFillDiff)
+	return output, nil
 }
 
 // Temporary function for predicting time until full
