@@ -1,44 +1,138 @@
+
+
 # Smart Waste Management System
 
+The **Smart Waste Management System** is a system designed to improve waste management by using technology to optimize collection and processing of waste. This system monitors the fill levels of waste containers and provides real-time data to streamline the collection process, reduce operational costs, and minimize environmental impact.
+
+## Table of Contents
+
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Project Structure](#project-structure)
+- [Contributing](#contributing)
+- [License](#license)
+
+## Prerequisites
+
+Make sure you have the following installed on your machine:
+
+- Go 1.23 or newer
+- Git
+- Docker (Optional, for containerization)
+- Database (e.g., PostgreSQL, MongoDB, etc.,)
+  
+## Installation
+
+Follow the steps below to set up and run the **Smart Waste Management System** locally:
+
+1. **Clone the repository:**
+
+   ```bash
+   git clone https://github.com/congmanh18/Waste-backend.git
+   cd smart-waste
+   ```
+
+2. **Initialize the Go module:**
+
+   ```bash
+   go mod init smart-waste
+   go mod tidy
+   ```
+
+3. **Set up environment variables:**
+
+   Create a `.env` file in the root directory of the project to store your environment variables, such as database configuration, API keys, etc.
+
+   Example `.env` file:
+
+   ```env
+   DB_HOST=localhost
+   DB_USER=username
+   DB_PASSWORD=password
+   DB_NAME=smart_waste_db
+   ```
+
+4. **Run the project:**
+
+   ```bash
+   go run main.go
+   ```
+
+## Usage
+
+Once the application is running, it will monitor and manage waste collection systems by utilizing sensor data. You can interact with the system through a web dashboard or API.
+
+### API
+
+Here is a simple example of using the system's API:
+
+- **Get all waste containers status:**
+
+  ```bash
+  curl http://localhost:8000/api/containers
+  ```
+
+- **Update waste container status:**
+
+  ```bash
+  curl -X PUT http://localhost:8000/api/containers/1 -d 'status=full'
+  ```
+
+## Project Structure
+
+The basic structure of the project:
+
 ```
-go mod init smart-waste
+waste-backend/
+│
+├── apis/               # API controllers for different modules
+│   ├── report/         # Report-related API logic
+│   ├── user/           # User-related API logic
+│   └── wastebin/       # Wastebin-related API logic
+│
+├── cmd/                # Command-line entry points
+│   ├── dev/            # Development mode entry point
+│   └── pro/            # Production mode entry point
+│
+├── deploy/             # Scripts for deployment
+├── docs/               # Documentation, including Swagger files
+├── domain/             # Core domain logic
+│   ├── report/         # Domain logic for reports
+│   ├── user/           # Domain logic for users
+│   └── wastebin/       # Domain logic for waste bins
+│
+├── machine_learning/   # Machine learning models and logic
+│
+├── pkgs/               # Utility packages
+│   ├── auth/           # Authentication logic
+│   ├── db/             # Database logic
+│   ├── error/          # Error handling
+│   ├── middleware/     # API middlewares (e.g., CORS, logging)
+│   ├── python/         # Interfacing with Python-based machine learning
+│   ├── res/            # Resource files
+│   ├── security/       # Security-related utilities
+│   └── validator/      # Data validation
+│
+└── .env                # Environment variables configuration file
+
 ```
-```
-go mod tidy
-```
-### 1. **Dự đoán thời gian thu gom rác**
-   - **Vấn đề**: Dự đoán thời gian mà thùng rác sẽ đầy dựa trên các yếu tố như trọng lượng (`Weight`), mức độ lấp đầy (`FilledLevel`), và các thông số môi trường khác (`AirQuality`, `WaterLevel`).
-   - **Thuật toán**: Hồi quy tuyến tính (Linear Regression) hoặc cây quyết định (Decision Tree Regression) có thể được sử dụng để dự đoán thời gian thu gom.
-   - **Triển khai với Golang**: Bạn có thể sử dụng thư viện học máy như `gorgonia` hoặc `GoLearn` để xây dựng mô hình hồi quy và huấn luyện nó trên tập dữ liệu của bạn.
-<!-- 
-### 2. **Phân loại thùng rác cần ưu tiên**
-   - **Vấn đề**: Phân loại các thùng rác nào cần được ưu tiên thu gom dựa trên các yếu tố nguy hiểm như mức độ ô nhiễm không khí (`AirQuality`) hoặc mức độ nước tràn (`WaterLevel`).
-   - **Thuật toán**: Sử dụng phương pháp phân loại như SVM (Support Vector Machine) hoặc Logistic Regression để phân loại các thùng rác cần ưu tiên.
-   - **Triển khai với Golang**: Tương tự, bạn có thể sử dụng thư viện `GoLearn` để xây dựng mô hình phân loại và áp dụng vào dữ liệu thực tế. -->
+## API Documentation
 
-### 2. **Tối ưu hóa lộ trình thu gom rác**
-   - **Vấn đề**: Tối ưu hóa lộ trình thu gom rác dựa trên vị trí (`Latitude`, `Longitude`) và tình trạng hiện tại của các thùng rác.
-   - **Thuật toán**: Thuật toán di truyền (Genetic Algorithm) hoặc thuật toán kiến ​​tạo (Ant Colony Optimization) có thể được sử dụng để tối ưu hóa lộ trình.
-   - **Triển khai với Golang**: Có thể sử dụng thư viện như `hector` hoặc tự xây dựng giải thuật với Golang để tối ưu hóa lộ trình thu gom.
+Swagger is used to document the API. You can view the API documentation by running the application and navigating to `http://localhost:8000/swagger` in your browser.
 
-### 3. **Phát hiện bất thường**
-   - **Vấn đề**: Phát hiện các bất thường trong dữ liệu, chẳng hạn như thùng rác bị hỏng hoặc dữ liệu cảm biến không chính xác.
-   - **Thuật toán**: Sử dụng phương pháp phân cụm như K-means hoặc DBSCAN để phát hiện các điểm dữ liệu bất thường.
-   - **Triển khai với Golang**: Sử dụng `GoLearn` hoặc xây dựng thuật toán thủ công trong Golang để xử lý các cụm dữ liệu và phát hiện bất thường.
+To modify or add to the API documentation, edit the following files:
 
-### Triển khai trong Golang
+- `docs/swagger.yaml`
+- `docs/swagger.json`
 
-Để triển khai các mô hình học máy trong Golang:
+## Contributing
 
-1. **Chuẩn bị dữ liệu**: Làm sạch và chuẩn hóa dữ liệu trước khi đưa vào mô hình. Điều này có thể được thực hiện bằng cách sử dụng các công cụ như `gopandas` hoặc `dataframe-go`.
+We welcome contributions from the community! Please read our [contributing guidelines](CONTRIBUTING.md) before you start working on a feature or bug fix.
 
-2. **Xây dựng mô hình**: Sử dụng các thư viện như `GoLearn`, `Gorgonia`, hoặc viết tay các mô hình đơn giản bằng Golang.
+## License
 
-3. **Huấn luyện và đánh giá**: Chia dữ liệu thành tập huấn luyện và tập kiểm tra, sau đó huấn luyện mô hình và đánh giá độ chính xác bằng cách sử dụng các chỉ số như MSE, MAE cho mô hình hồi quy, hoặc Accuracy, F1-score cho mô hình phân loại.
-
-4. **Triển khai mô hình**: Sau khi mô hình được huấn luyện, bạn có thể triển khai mô hình này dưới dạng một API sử dụng `net/http` trong Golang để tích hợp vào hệ thống của bạn.
-
-Việc sử dụng học máy có thể mang lại nhiều giá trị cho hệ thống quản lý rác thông minh, từ việc dự đoán chính xác thời gian thu gom đến tối ưu hóa lộ trình thu gom.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 
 elasticsearch
