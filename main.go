@@ -6,6 +6,8 @@ import (
 	userHandler "smart-waste/apis/user/handlers"
 	wastebinHandler "smart-waste/apis/wastebin/handlers"
 
+	mqtt "github.com/eclipse/paho.mqtt.golang"
+
 	_ "smart-waste/docs"
 
 	"github.com/gofiber/swagger"
@@ -63,8 +65,36 @@ func main() {
 	// Thiết lập route wastebin
 	wastebinRoutes.SetupWasteBinRoutes(app, wastebinHandler)
 
+	// Khởi tạo MQTT client và kết nối
+	mqttClient := initMQTTClient()
+
+	// Gọi hàm để xử lý cập nhật thông tin thùng rác qua MQTT
+	wastebinHandler.MQTTUpdateWasteBin(mqttClient)
+
 	// Chạy ứng dụng trên cổng 3000
 	app.Listen(":3000")
+}
+
+func initMQTTClient() mqtt.Client {
+	// Cấu hình MQTT client options (cấu hình địa chỉ broker, ID client, v.v.)
+	opts := mqtt.NewClientOptions().
+		AddBroker("mqtt://broker.hivemq.com:1883").
+		SetClientID("smart-waste-client").
+		SetDefaultPublishHandler(func(client mqtt.Client, msg mqtt.Message) {
+			slog.Info("Received message", "topic", msg.Topic(), "payload", string(msg.Payload()))
+		})
+
+	// Tạo MQTT client
+	client := mqtt.NewClient(opts)
+
+	// Kết nối tới MQTT broker
+	if token := client.Connect(); token.Wait() && token.Error() != nil {
+		slog.Error("Failed to connect to MQTT broker", "error", token.Error())
+		panic(token.Error())
+	}
+
+	slog.Info("Connected to MQTT broker")
+	return client
 }
 
 func connectAndMigrateDB() *gorm.DB {
@@ -110,21 +140,3 @@ func migrateDB(db *gorm.DB) {
 		}
 	}
 }
-
-// func initRoutes(app *fiber.App, db *gorm.DB) {
-// 	// Init handlers and routes with alias names to avoid conflict
-// 	userHandler := userHandler.UserHandler{
-// 		CreateUserUsecase: userUsecase.NewCreateUserUsecase(db),
-// 	}
-
-// 	wastebinHandler := wastebinHandler.WasteBinHandler{
-// 		CreateWasteBinUsecase: wastebinUsecase.NewCreateWasteBinUsecase(db),
-// 		UpdateWasteBinUsecase: wastebinUsecase.NewUpdateWasteBinUsecase(db),
-// 		DeleteWasteBinUsecase: wastebinUsecase.NewDeleteUserUsecase(db),
-// 		ReadWasteBinUsecase:   wastebinUsecase.NewReadWasteBinUsecase(db),
-// 	}
-
-// 	// Register user and wastebin routes
-// 	userRoutes.SetupUserRoutes(app, userHandler)
-// 	wastebinRoutes.SetupWasteBinRoutes(app, wastebinHandler)
-// }

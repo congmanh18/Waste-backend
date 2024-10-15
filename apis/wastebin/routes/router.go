@@ -6,6 +6,7 @@ import (
 	_ "smart-waste/docs"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/websocket/v2"
 )
 
 // SetupWasteBinRoutes thiết lập các route cho wastebin
@@ -17,16 +18,6 @@ import (
 
 func SetupWasteBinRoutes(app *fiber.App, wasteBinHandler handler.WasteBinHandler) {
 	var binRoutes = app.Group("/wastebin")
-
-	// @Summary Kết nối WebSocket
-	// @Description Kết nối tới wastebin qua WebSocket
-	// @Tags WasteBin
-	// @Produce json
-	// @Success 101 {string} string "WebSocket connected"
-	// @Failure 400 {object} fiber.Map
-	// @Router /wastebin/ws [get]
-	binRoutes.Get("/ws", wasteBinHandler.WebSocketHandler())
-
 	// @Summary Tạo wastebin mới
 	// @Description Tạo một wastebin mới với thông tin cụ thể
 	// @Tags WasteBin
@@ -69,4 +60,11 @@ func SetupWasteBinRoutes(app *fiber.App, wasteBinHandler handler.WasteBinHandler
 	// @Failure 400 {object} fiber.Map
 	// @Router /wastebin/{id} [get]
 	binRoutes.Get("/:id", wasteBinHandler.HandlerReadWasteBin())
+
+	// Thêm route cho WebSocket
+	// @Summary Cập nhật thông tin wastebin qua WebSocket
+	// @Description Cập nhật thông tin của một wastebin theo ID qua kết nối WebSocket
+	// @Tags WasteBin
+	// @Router /wastebin/ws/update [get]
+	binRoutes.Get("/ws/update", websocket.New(wasteBinHandler.WebSocketUpdateWasteBin))
 }

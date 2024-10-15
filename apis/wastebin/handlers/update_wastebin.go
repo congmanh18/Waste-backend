@@ -131,7 +131,3 @@ func predictTimeUntilFull(filledLevel, predictedRateOfChange float64) (int, int,
 
 	return days, hours, minutes, seconds, nil
 }
-
-// // Broadcast data tới tất cả client kết nối
-// message := fmt.Sprintf("Waste bin ID %s updated", ID)
-// BroadcastToClients(message)
