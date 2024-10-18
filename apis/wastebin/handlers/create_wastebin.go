@@ -37,7 +37,6 @@ func (u WasteBinHandler) HandlerCreateWasteBin() fiber.Handler {
 			Weight:        createWasteBinReq.Weight,
 			RemainingFill: createWasteBinReq.RemainingFill,
 			AirQuality:    createWasteBinReq.AirQuality,
-			WaterLevel:    createWasteBinReq.WaterLevel,
 			Address:       createWasteBinReq.Address,
 			Latitude:      createWasteBinReq.Latitude,
 			Longitude:     createWasteBinReq.Longitude,

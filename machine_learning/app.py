@@ -1,69 +1,88 @@
 from flask import Flask, request, jsonify
-import pandas as pd
-import pickle
-from sklearn.model_selection import train_test_split
-from sklearn.svm import SVC
+from flask_cors import CORS
+import joblib
 from statsmodels.tsa.arima.model import ARIMA
+import pandas as pd
+import os
 
+# Khởi tạo Flask app
 app = Flask(__name__)
 
-# Bước 1: Tải dữ liệu và tiền xử lý
+# Cấu hình CORS để cho phép mọi nguồn truy cập (nếu muốn chỉ cho phép một domain cụ thể, bạn có thể chỉ định ở đây)
+CORS(app, resources={r"/*": {"origins": "*"}})
+
+# Đường dẫn tới các tệp mô hình và dữ liệu
+svm_model_path = './machine_learning/svm_model.pkl'
+arima_model_path = './machine_learning/arima_model.pkl'
 file_path = './machine_learning/Processed_Trash_Fill_Data.csv'
+
+# Kiểm tra xem các tệp có tồn tại không
+if not os.path.exists(svm_model_path) or not os.path.exists(arima_model_path) or not os.path.exists(file_path):
+    raise FileNotFoundError("Tệp mô hình hoặc dữ liệu không tồn tại!")
+
+# Tải mô hình SVM và ARIMA đã lưu
+svm_model = joblib.load(svm_model_path)
+arima_model_fit = joblib.load(arima_model_path)
+
+# Tải dữ liệu CSV
 df = pd.read_csv(file_path)
 
-# Tạo nhãn phân loại cho SVM dựa trên mức độ đầy
-def classify_fill_level(filled_level):
-    if filled_level < 20:
-        return 0  # Trống
-    elif 20 <= filled_level < 80:
-        return 1  # Gần đầy
-    else:
-        return 2  # Đầy
-
-df['label'] = df['FilledLevel(%)'].apply(classify_fill_level)
-
-# Bước 2: Huấn luyện mô hình SVM
-X = df[['Weight(kg)', 'FilledLevel(%)']]  # Đầu vào: Trọng lượng và Mức độ đầy
-y = df['label']  # Nhãn phân loại
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
-# Huấn luyện SVM
-svm_model = SVC(kernel='linear')
-svm_model.fit(X_train, y_train)
-
-# Bước 3: Huấn luyện mô hình ARIMA với RemainingFill(%)
-arima_model = ARIMA(df['RemainingFill(%)'], order=(5, 1, 0))
-arima_model_fit = arima_model.fit()
-
-# Lưu cả hai mô hình (tạm thời không lưu vào file để đơn giản hóa)
-# with open('svm_trash_model.pkl', 'wb') as f:
-#     pickle.dump(svm_model, f)
-
-# with open('arima_model.pkl', 'wb') as f:
-#     pickle.dump(arima_model_fit, f)
-
-# Bước 4: API cho mô hình ARIMA
+# API cho ARIMA dự đoán
 @app.route('/arima/predict', methods=['POST'])
 def arima_predict():
-    data = request.get_json()
-    steps = int(data.get('steps', 1))  # Số bước dự đoán
-    # Dự đoán số bước tiếp theo
-    forecast = arima_model_fit.forecast(steps=steps)
-    forecast_list = forecast.tolist()
-    return jsonify(forecast=forecast_list)
+    try:
+        data = request.get_json()
+        steps = int(data.get('steps', 1))  # Số bước dự đoán
+        current_fill = float(data.get('current_fill'))  # Nhận giá trị "RemainingFill(%)" hiện tại
+        
+        # Cập nhật chuỗi dữ liệu với giá trị "RemainingFill(%)" hiện tại
+        new_data = df['RemainingFill(%)'].tolist()
+        new_data.append(current_fill)  # Thêm giá trị hiện tại vào chuỗi
 
-# Bước 5: API cho mô hình SVM
+        # Tạo mô hình ARIMA mới dựa trên dữ liệu đã cập nhật
+        arima_model_updated = ARIMA(new_data, order=(5, 1, 0))
+        arima_model_fit_updated = arima_model_updated.fit()
+
+        # Dự đoán số bước tiếp theo dựa trên mô hình đã cập nhật
+        forecast = arima_model_fit_updated.forecast(steps=steps)
+        forecast_list = forecast.tolist()
+
+        return jsonify(forecast=forecast_list), 200  # Trả về HTTP 200 OK
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500  # Trả về HTTP 500 Internal Server Error
+
+# API cho SVM phân loại
 @app.route('/svm/classify', methods=['POST'])
 def svm_classify():
-    data = request.get_json()
-    weight = float(data['weight'])
-    filled_level = float(data['filled_level'])
+    try:
+        # Lấy dữ liệu JSON từ yêu cầu
+        data = request.get_json()
 
-    # Dự đoán trạng thái thùng rác
-    input_data = [[weight, filled_level]]
-    prediction = svm_model.predict(input_data)
-    
-    return jsonify({'label': int(prediction[0])})
+        # Ghi log dữ liệu nhận được
+        print("Received data:", data)
+        
+        # Chuyển đổi dữ liệu thành số thực
+        weight = float(data['weight'])
+        remaining_fill = float(data['remaining_fill'])
 
+        # Ghi log dữ liệu sau khi chuyển đổi
+        print("Weight:", weight, "Remaining fill:", remaining_fill)
+
+        # Dự đoán với mô hình SVM
+        input_data = [[weight, remaining_fill]]
+        prediction = svm_model.predict(input_data)
+
+        # Ghi log kết quả dự đoán
+        print("Prediction result:", prediction)
+
+        # Trả về kết quả dưới dạng JSON (không chuyển đổi thành số nguyên)
+        return jsonify({'label': prediction[0]}), 200  # Trả về nhãn dạng chuỗi
+    except Exception as e:
+        # Ghi log lỗi ra console
+        print("Error occurred:", str(e))
+        return jsonify({'error': str(e)}), 500  # Trả về HTTP 500 Internal Server Error
+
+
+# Chạy ứng dụng Flask
 if __name__ == '__main__':
     app.run(port=5000, debug=True)
