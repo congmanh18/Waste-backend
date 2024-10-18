@@ -44,3 +44,78 @@ Dự đoán này cho thấy mức độ đầy của thùng rác sẽ đạt đ�
 - Bạn có thể tinh chỉnh mô hình bằng cách điều chỉnh các giá trị `p`, `d`, `q` dựa trên AIC/BIC và thử nghiệm các mô hình khác để cải thiện dự đoán.
   
 Bạn có thể tiếp tục lưu mô hình ARIMA đã huấn luyện và sử dụng nó để dự đoán trong tương lai hoặc triển khai vào hệ thống backend của bạn.
+
+
+Để giải thích rõ hơn về cơ chế của dự đoán ARIMA, trước tiên cần hiểu một số khái niệm cơ bản về mô hình ARIMA và cách nó hoạt động trong dự đoán chuỗi thời gian.
+
+### Tổng quan về ARIMA:
+
+ARIMA là viết tắt của **AutoRegressive Integrated Moving Average**, và nó được sử dụng rộng rãi trong việc dự đoán chuỗi thời gian. Mô hình ARIMA có ba thành phần chính:
+
+1. **AutoRegressive (AR):** Thành phần hồi quy tự động, nghĩa là giá trị hiện tại của chuỗi được dự đoán dựa trên các giá trị trong quá khứ.
+   
+2. **Integrated (I):** Số lần cần lấy hiệu (differencing) của chuỗi để làm chuỗi trở nên ổn định (stationary).
+   
+3. **Moving Average (MA):** Thành phần trung bình động, sử dụng sai số dự đoán của các bước trước đó để điều chỉnh dự đoán của các bước tiếp theo.
+
+Mô hình ARIMA có ba tham số quan trọng: `(p, d, q)`, trong đó:
+- `p`: Số bậc của thành phần tự hồi quy (AR).
+- `d`: Số lần lấy hiệu (differencing) để làm chuỗi ổn định.
+- `q`: Số bậc của thành phần trung bình động (MA).
+
+### Cơ chế dự đoán của ARIMA:
+
+Khi bạn sử dụng mô hình ARIMA để dự đoán, nó sẽ tạo ra các giá trị tương lai dựa trên dữ liệu đã có. Mô hình sẽ dựa vào các giá trị trong quá khứ của chuỗi thời gian để đưa ra dự đoán cho bước tiếp theo (hoặc nhiều bước tiếp theo).
+
+Trong đoạn code của bạn, mô hình ARIMA được huấn luyện với chuỗi thời gian là cột `RemainingFill(%)` từ dữ liệu về thùng rác.
+
+#### Các bước dự đoán:
+
+1. **Huấn luyện mô hình ARIMA:**
+   - Mô hình ARIMA được huấn luyện dựa trên chuỗi thời gian của cột `RemainingFill(%)` trong quá khứ. Mục đích là để học được các mẫu hoặc xu hướng trong dữ liệu quá khứ.
+
+   ```python
+   arima_model = ARIMA(df['RemainingFill(%)'], order=(5, 1, 0))
+   arima_model_fit = arima_model.fit()
+   ```
+
+   Ở đây, `order=(5, 1, 0)` có nghĩa là:
+   - `p=5`: Sử dụng 5 giá trị trước đó trong thành phần hồi quy tự động.
+   - `d=1`: Lấy hiệu 1 lần để làm chuỗi ổn định.
+   - `q=0`: Không sử dụng thành phần trung bình động.
+
+2. **Dự đoán với ARIMA:**
+   - Sau khi mô hình đã được huấn luyện, bạn có thể sử dụng nó để dự đoán các giá trị trong tương lai. Điều này được thực hiện bằng phương thức `forecast()`, và bạn có thể chỉ định số bước muốn dự đoán (`steps`).
+
+   ```python
+   forecast = arima_model_fit.forecast(steps=steps)
+   ```
+
+   Ở đây, `steps` là số bước trong tương lai mà bạn muốn dự đoán. Ví dụ, nếu `steps=5`, mô hình sẽ dự đoán giá trị cho 5 bước tiếp theo dựa trên dữ liệu huấn luyện.
+
+3. **API `/arima/predict`:**
+   - API này nhận vào một yêu cầu POST với một tham số `steps` (số bước dự đoán).
+   - Nó sẽ trả về danh sách các giá trị dự đoán cho những bước tiếp theo dựa trên dữ liệu đã có.
+
+   ```python
+   @app.route('/arima/predict', methods=['POST'])
+   def arima_predict():
+       try:
+           data = request.get_json()
+           steps = int(data.get('steps', 1))  # Số bước dự đoán
+           forecast = arima_model_fit.forecast(steps=steps)
+           forecast_list = forecast.tolist()
+           return jsonify(forecast=forecast_list)
+       except Exception as e:
+           return jsonify({'error': str(e)}), 500
+   ```
+
+#### Ví dụ:
+Giả sử bạn có dữ liệu `RemainingFill(%)` là [30, 40, 35, 50, 45], mô hình ARIMA sẽ học từ chuỗi này và khi bạn yêu cầu dự đoán với `steps=3`, nó sẽ trả về dự đoán cho 3 bước tiếp theo, ví dụ: [47, 49, 50]. Các giá trị này là dự đoán dựa trên xu hướng mà mô hình học được từ dữ liệu trong quá khứ.
+
+### Tóm tắt lại cơ chế:
+- Mô hình ARIMA học từ dữ liệu chuỗi thời gian trong quá khứ để nhận biết các mẫu hoặc xu hướng.
+- Khi dự đoán, ARIMA dựa trên các giá trị trong quá khứ để đưa ra dự đoán cho các giá trị tương lai, và nó có thể dự đoán cho nhiều bước liên tiếp.
+- Số bước dự đoán được chỉ định thông qua tham số `steps`, và mô hình sẽ trả về giá trị dự đoán tương ứng với số bước đó.
+
+Nếu có câu hỏi cụ thể nào về cách ARIMA hoạt động, mình có thể giải thích thêm chi tiết hơn!

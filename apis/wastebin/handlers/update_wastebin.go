@@ -40,7 +40,6 @@ func (w WasteBinHandler) HandlerUpdateWasteBin() fiber.Handler {
 			Weight:        updateWasteBinReq.Weight,
 			RemainingFill: updateWasteBinReq.RemainingFill,
 			AirQuality:    updateWasteBinReq.AirQuality,
-			WaterLevel:    updateWasteBinReq.WaterLevel,
 			Address:       updateWasteBinReq.Address,
 			Latitude:      updateWasteBinReq.Latitude,
 			Longitude:     updateWasteBinReq.Longitude,

@@ -7,7 +7,6 @@ type WasteBin struct {
 	Weight        *string
 	RemainingFill *string
 	AirQuality    *string
-	WaterLevel    *string
 	Address       *string
 	Latitude      *string
 	Longitude     *string

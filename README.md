@@ -51,6 +51,7 @@ Follow the steps below to set up and run the **Smart Waste Management System** l
    DB_USER=username
    DB_PASSWORD=password
    DB_NAME=smart_waste_db
+   DB_PORT=3000
    ```
 
 4. **Run the project:**
@@ -70,13 +71,13 @@ Here is a simple example of using the system's API:
 - **Get all waste containers status:**
 
   ```bash
-  curl http://localhost:8000/api/containers
+  curl http://localhost:3000/api/containers
   ```
 
 - **Update waste container status:**
 
   ```bash
-  curl -X PUT http://localhost:8000/api/containers/1 -d 'status=full'
+  curl -X PUT http://localhost:3000/api/containers/1 -d 'status=full'
   ```
 
 ## Project Structure
@@ -119,7 +120,7 @@ waste-backend/
 ```
 ## API Documentation
 
-Swagger is used to document the API. You can view the API documentation by running the application and navigating to `http://localhost:8000/swagger` in your browser.
+Swagger is used to document the API. You can view the API documentation by running the application and navigating to `http://localhost:3000/swagger` in your browser.
 
 To modify or add to the API documentation, edit the following files:
 
