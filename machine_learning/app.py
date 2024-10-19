@@ -14,7 +14,7 @@ CORS(app, resources={r"/*": {"origins": "*"}})
 # Đường dẫn tới các tệp mô hình và dữ liệu
 svm_model_path = './machine_learning/svm_model.pkl'
 arima_model_path = './machine_learning/arima_model.pkl'
-file_path = './machine_learning/Processed_Trash_Fill_Data.csv'
+file_path = './machine_learning/trash_bin_data_accumulated_2024_09_01_to_2024_10_22.csv'
 
 # Kiểm tra xem các tệp có tồn tại không
 if not os.path.exists(svm_model_path) or not os.path.exists(arima_model_path) or not os.path.exists(file_path):
