@@ -60,6 +60,7 @@ func SetupWasteBinRoutes(app *fiber.App, wasteBinHandler handler.WasteBinHandler
 	// @Failure 400 {object} fiber.Map
 	// @Router /wastebin/{id} [get]
 	binRoutes.Get("/:id", wasteBinHandler.HandlerReadWasteBin())
+	binRoutes.Get("/", wasteBinHandler.HandlerReadAllWasteBins())
 
 	// Thêm route cho WebSocket
 	// @Summary Cập nhật thông tin wastebin qua WebSocket

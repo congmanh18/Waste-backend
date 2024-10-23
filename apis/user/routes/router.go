@@ -89,7 +89,7 @@ func SetupUserRoutes(app *fiber.App, userHander handler.UserHandler) {
 	// @Success 200 {array} handler.UserResponse
 	// @Failure 400 {object} fiber.Map
 	// @Router /admin/findall [get]
-	adminRoutes.Get("/findall", userHander.HandlerFindAllUser())
+	adminRoutes.Get("/", userHander.HandlerFindAllUser())
 
 	// @Summary Xóa người dùng
 	// @Description Chỉ dành cho admin, xóa một người dùng theo ID

@@ -11,7 +11,7 @@ type WasteBinRepo interface {
 	Save(ctx context.Context, wastebin *entity.WasteBin) error
 	Update(ctx context.Context, id *string, wastebin *entity.WasteBin) error
 	FindById(ctx context.Context, id *string) (*entity.WasteBin, error)
-	FindAll(ctx context.Context) (*[]entity.WasteBin, error)
+	FindAll(ctx context.Context) ([]entity.WasteBin, error)
 	Delete(ctx context.Context, id *string) error
 }
 
@@ -41,12 +41,13 @@ func (w *wasteBinRepoImpl) FindById(ctx context.Context, id *string) (*entity.Wa
 	return &wastebin, nil
 }
 
-func (w *wasteBinRepoImpl) FindAll(ctx context.Context) (*[]entity.WasteBin, error) {
-	var wasteBinList []entity.WasteBin
-	if err := w.gorm.WithContext(ctx).Debug().Find(&wasteBinList).Error; err != nil {
-		return nil, err
+func (w *wasteBinRepoImpl) FindAll(ctx context.Context) ([]entity.WasteBin, error) {
+	var wasteBins []entity.WasteBin
+	result := w.gorm.WithContext(ctx).Find(&wasteBins)
+	if result.Error != nil {
+		return nil, result.Error
 	}
-	return &wasteBinList, nil
+	return wasteBins, nil
 }
 
 func (w *wasteBinRepoImpl) Delete(ctx context.Context, id *string) error {
