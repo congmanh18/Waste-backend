@@ -3,6 +3,7 @@ package main
 import (
 	"log/slog"
 	"os"
+	reportHandler "smart-waste/apis/report/handlers"
 	userHandler "smart-waste/apis/user/handlers"
 	wastebinHandler "smart-waste/apis/wastebin/handlers"
 
@@ -11,9 +12,11 @@ import (
 	"github.com/gofiber/swagger"
 	"github.com/joho/godotenv"
 
+	reportRoutes "smart-waste/apis/report/routes"
 	userRoutes "smart-waste/apis/user/routes"
 	wastebinRoutes "smart-waste/apis/wastebin/routes"
 
+	reportUsecase "smart-waste/domain/report/usecase"
 	userUsecase "smart-waste/domain/user/usecase"
 	wastebinUsecase "smart-waste/domain/wastebin/usecase"
 
@@ -47,14 +50,30 @@ func main() {
 
 	// Khởi tạo các handler và route
 	userHandler := userHandler.UserHandler{
-		CreateUserUsecase: userUsecase.NewCreateUserUsecase(db),
+		CreateUserUsecase:     userUsecase.NewCreateUserUsecase(db),
+		GetUserByPhoneUsecase: userUsecase.NewGetUserByPhoneUsecase(db),
+		UpdateUserUsecase:     userUsecase.NewUpdateUserUsecase(db),
+		DeleteUserUsecase:     userUsecase.NewDeleteUserUsecase(db),
+		FindUserByIDUsecase:   userUsecase.NewFindUserByIDUsecase(db),
+		FindAllUserUsecase:    userUsecase.NewFindAllUserUsecase(db),
 	}
 
 	wastebinHandler := wastebinHandler.WasteBinHandler{
-		CreateWasteBinUsecase: wastebinUsecase.NewCreateWasteBinUsecase(db),
-		UpdateWasteBinUsecase: wastebinUsecase.NewUpdateWasteBinUsecase(db),
-		DeleteWasteBinUsecase: wastebinUsecase.NewDeleteUserUsecase(db),
-		ReadWasteBinUsecase:   wastebinUsecase.NewReadWasteBinUsecase(db),
+		CreateWasteBinUsecase:  wastebinUsecase.NewCreateWasteBinUsecase(db),
+		UpdateWasteBinUsecase:  wastebinUsecase.NewUpdateWasteBinUsecase(db),
+		DeleteWasteBinUsecase:  wastebinUsecase.NewDeleteUserUsecase(db),
+		ReadWasteBinUsecase:    wastebinUsecase.NewReadWasteBinUsecase(db),
+		ReadAllWasteBinUsecase: wastebinUsecase.NewReadAllWasteBinUsecase(db),
+	}
+
+	reportHandler := reportHandler.ReportHandler{
+		CreateReportUsecase:           reportUsecase.NewCreateReportUsecase(db),
+		DeleteReportUsecase:           reportUsecase.NewDeleteReportUsecase(db),
+		GetAllReportsUsecase:          reportUsecase.NewGetAllReportsUsecase(db),
+		GetReportByIDUsecase:          reportUsecase.NewGetReportByIDUsecase(db),
+		GetReportsByDateUsecase:       reportUsecase.NewGetReportsByDateUsecase(db),
+		GetReportsByUserIDUsecase:     reportUsecase.NewGetReportsByUserIDUsecase(db),
+		GetReportsByWasteBinIDUsecase: reportUsecase.NewGetReportsByWasteBinIDUsecase(db),
 	}
 
 	// Thiết lập route người dùng
@@ -62,6 +81,9 @@ func main() {
 
 	// Thiết lập route wastebin
 	wastebinRoutes.SetupWasteBinRoutes(app, wastebinHandler)
+
+	// Thiết lập route report
+	reportRoutes.SetupReportRoutes(app, reportHandler)
 
 	// Chạy ứng dụng trên cổng 3000
 	app.Listen(":3000")
@@ -97,6 +119,7 @@ func connectAndMigrateDB() *gorm.DB {
 
 	return gormDB
 }
+
 func migrateDB(db *gorm.DB) {
 	entities := []interface{}{
 		&userEntity.User{},
