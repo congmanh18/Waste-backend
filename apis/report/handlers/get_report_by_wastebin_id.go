@@ -7,6 +7,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
+
 func (h *ReportHandler) HandlerGetReportsByWasteBinID() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		ctx, cancel := context.WithTimeout(c.Context(), 5*time.Second)

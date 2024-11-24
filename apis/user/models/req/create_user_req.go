@@ -1,5 +1,7 @@
+// File: apis/user/models/req/create_user_req.go
 package req
 
+// CreateUserReq represents the payload for user login or registration.
 type CreateUserReq struct {
 	ID        string  `json:"id"`
 	FirstName *string `json:"first_name" validate:"required,min=2,max=100"`

@@ -80,6 +80,9 @@ func (u UserHandler) HandlerLogin() fiber.Handler {
 			return res.Send(c)
 		}
 
+		// hashedPassword, _ := security.HashAndSalt([]byte(*loginUserReq.Password))
+		// fmt.Println("Generated Hash:", hashedPassword) // Debug
+
 		// Compare password
 		if !security.ComparePasswords(*foundUser.Password, []byte(*loginUserReq.Password)) {
 			res := res.NewRes(
