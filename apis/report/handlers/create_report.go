@@ -8,7 +8,6 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
-	"gorm.io/gorm"
 	// Add a logging library if needed
 	// "github.com/sirupsen/logrus"
 )
@@ -25,23 +24,6 @@ func (h *ReportHandler) HandlerCreateReport() fiber.Handler {
 			return fiber.NewError(fiber.StatusBadRequest, "Invalid request payload")
 		}
 
-		// Validate the WasteBin ID by calling FindById
-		wasteBin, err := h.WasteBinRepo.FindById(ctx, reportReq.WasteBinID)
-		if err != nil {
-			if err == gorm.ErrRecordNotFound {
-				return fiber.NewError(fiber.StatusNotFound, "Waste bin not found")
-			}
-			return fiber.NewError(fiber.StatusInternalServerError, "Failed to fetch waste bin")
-		}
-
-		user, err := h.UserRepo.FindById(ctx, reportReq.UserID)
-		if err != nil {
-			if err == gorm.ErrRecordNotFound {
-				return fiber.NewError(fiber.StatusNotFound, "User not found")
-			}
-			return fiber.NewError(fiber.StatusInternalServerError, "Failed to fetch user")
-		}
-
 		// Validate essential fields.
 		if reportReq.UserID == nil || reportReq.WasteBinID == nil {
 			return fiber.NewError(fiber.StatusBadRequest, "UserID and WasteBinID are required")
@@ -55,8 +37,6 @@ func (h *ReportHandler) HandlerCreateReport() fiber.Handler {
 			ID:          reportID.String(),
 			UserID:      reportReq.UserID,
 			WasteBinID:  reportReq.WasteBinID,
-			User:        *user,
-			WasteBin:    *wasteBin,
 			Image:       reportReq.Image,
 			Description: reportReq.Description,
 			CreatedAt:   time.Now(),

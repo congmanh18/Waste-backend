@@ -20,7 +20,12 @@ func (w WasteBinHandler) HandlerReadAllWasteBins() fiber.Handler {
 			return res.Send(c)
 		}
 
-		res := res.NewRes(fiber.StatusOK, "All WasteBin Information", true, wasteBinEntities)
+		var wasteBinIDs []string
+		for _, report := range wasteBinEntities {
+			wasteBinIDs = append(wasteBinIDs, report.ID)
+		}
+
+		res := res.NewRes(fiber.StatusOK, "All WasteBin Information", true, wasteBinIDs)
 		return res.Send(c)
 	}
 }

@@ -17,6 +17,12 @@ func (h *ReportHandler) HandlerGetAllReports() fiber.Handler {
 			return fiber.NewError(fiber.StatusInternalServerError, "Failed to retrieve reports")
 		}
 
-		return c.Status(fiber.StatusOK).JSON(reports)
+		var reportIDs []string
+		for _, report := range *reports {
+			reportIDs = append(reportIDs, report.ID)
+		}
+
+		// Trả về danh sách các ID
+		return c.Status(fiber.StatusOK).JSON(reportIDs)
 	}
 }

@@ -7,8 +7,6 @@ import (
 	userHandler "smart-waste/apis/user/handlers"
 	wastebinHandler "smart-waste/apis/wastebin/handlers"
 
-	_ "smart-waste/docs"
-
 	"github.com/gofiber/swagger"
 	"github.com/joho/godotenv"
 
@@ -153,3 +151,7 @@ func migrateDB(db *gorm.DB) {
 		}
 	}
 }
+
+// docker push manh18/final:latest^C
+// docker tag final manh18/final2:latest
+// docker build -t final2 .

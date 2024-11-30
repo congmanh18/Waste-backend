@@ -36,17 +36,17 @@ func (u User) isEmailValid() bool {
 	return re.MatchString(*u.Email)
 }
 
-func (u User) areRequiredFieldsPresent() bool {
-	return u.FirstName != nil && u.LastName != nil && u.Email != nil && u.Gender != nil && u.Role != nil && u.Category != nil && u.Password != nil
-}
+// func (u User) areRequiredFieldsPresent() bool {
+// 	return u.FirstName != nil && u.LastName != nil && u.Email != nil && u.Gender != nil && u.Role != nil && u.Category != nil && u.Password != nil
+// }
 
-func (u User) isFieldLengthValid(field *string, minLength int, maxLength int) bool {
-	if field == nil {
-		return false
-	}
-	length := len(*field)
-	return length >= minLength && length <= maxLength
-}
+// func (u User) isFieldLengthValid(field *string, minLength int, maxLength int) bool {
+// 	if field == nil {
+// 		return false
+// 	}
+// 	length := len(*field)
+// 	return length >= minLength && length <= maxLength
+// }
 
 func (u User) IsValidUser() error {
 	if !u.isPhoneValid() {
@@ -55,11 +55,11 @@ func (u User) IsValidUser() error {
 	if !u.isEmailValid() {
 		return errors.New("email invalid")
 	}
-	if !u.areRequiredFieldsPresent() {
-		return errors.New("required fields are missing")
-	}
-	if !u.isFieldLengthValid(u.Password, 8, 64) {
-		return errors.New("password length invalid")
-	}
+	// if !u.areRequiredFieldsPresent() {
+	// 	return errors.New("required fields are missing")
+	// }
+	// if !u.isFieldLengthValid(u.Password, 8, 64) {
+	// 	return errors.New("password length invalid")
+	// }
 	return nil
 }
