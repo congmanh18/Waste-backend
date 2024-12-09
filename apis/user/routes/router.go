@@ -7,7 +7,7 @@ import (
 )
 
 func SetupUserRoutes(app *fiber.App, userHander handler.UserHandler) {
-	var userRoutes = app.Group("/users")
+	var userRoutes = app.Group("/wastebin/users")
 	userRoutes.Post("/login", userHander.HandlerLogin())          // Create User
 	userRoutes.Post("/refresh", userHander.RefreshTokenHandler()) // Create User
 	userRoutes.Post("/register", userHander.HandlerCreateUser())  // Create User

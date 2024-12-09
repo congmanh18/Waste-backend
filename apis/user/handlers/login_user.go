@@ -128,9 +128,9 @@ func (u UserHandler) HandlerLogin() fiber.Handler {
 			return res.Send(c)
 		}
 
-		// Store the JWT token and refresh token in the database
-		foundUser.Token = &accessToken
-		foundUser.RefreshToken = &refreshToken
+		// // Store the JWT token and refresh token in the database
+		// foundUser.Token = &accessToken
+		// foundUser.RefreshToken = &refreshToken
 		if err := u.UpdateUserUsecase.ExecuteUpdateUser(ctx, foundUser.ID, foundUser); err != nil {
 			res := res.NewRes(fiber.StatusInternalServerError, "Failed to update user tokens in database", false, nil)
 			res.SetError(err)
@@ -139,6 +139,7 @@ func (u UserHandler) HandlerLogin() fiber.Handler {
 
 		// Send response with both tokens
 		tokenResponse := tokenRes.TokenResponse{
+			ID:           foundUser.ID,
 			AccessToken:  accessToken,
 			RefreshToken: refreshToken,
 		}

@@ -31,6 +31,7 @@ func (u WasteBinHandler) HandlerCreateWasteBin() fiber.Handler {
 		// Validate request data here (e.g., weight, filledLevel, airQuality, waterLevel, address, latitude, longitude)
 
 		wasteBinID, _ := uuid.NewV7()
+		utcPlus7 := time.FixedZone("UTC+7", 7*60*60) // 7 hours in seconds
 
 		var wasteBinEntity = entity.WasteBin{
 			ID:            wasteBinID.String(),
@@ -40,7 +41,7 @@ func (u WasteBinHandler) HandlerCreateWasteBin() fiber.Handler {
 			Address:       createWasteBinReq.Address,
 			Latitude:      createWasteBinReq.Latitude,
 			Longitude:     createWasteBinReq.Longitude,
-			Timestamp:     time.Now(),
+			Timestamp:     time.Now().In(utcPlus7),
 		}
 
 		var useCaseErr = u.CreateWasteBinUsecase.ExecuteCreateWasteBin(ctx, &wasteBinEntity)

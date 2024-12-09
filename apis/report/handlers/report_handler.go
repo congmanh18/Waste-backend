@@ -13,6 +13,7 @@ type ReportHandler struct {
 	GetReportByIDUsecase          *usecase.GetReportByIDUsecase
 	GetReportsByDateUsecase       *usecase.GetReportsByDateUsecase
 	GetReportsByUserIDUsecase     *usecase.GetReportsByUserIDUsecase
+	GetLast                       *usecase.GetLatestByWasteBinID
 	GetReportsByWasteBinIDUsecase *usecase.GetReportsByWasteBinIDUsecase
 	WasteBinRepo                  wasteBinRepo.WasteBinRepo
 	UserRepo                      userRepo.UserRepo

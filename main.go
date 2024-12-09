@@ -31,7 +31,7 @@ import (
 	"gorm.io/gorm"
 )
 
-var enableMigration = true
+var enableMigration = false
 
 // @title Smart Waste Management API
 // @version 1.0
@@ -78,6 +78,7 @@ func main() {
 		CreateReportUsecase:           reportUsecase.NewCreateReportUsecase(db),
 		DeleteReportUsecase:           reportUsecase.NewDeleteReportUsecase(db),
 		GetAllReportsUsecase:          reportUsecase.NewGetAllReportsUsecase(db),
+		GetLast:                       reportUsecase.NewGetLatestByWasteBinID(db),
 		GetReportByIDUsecase:          reportUsecase.NewGetReportByIDUsecase(db),
 		GetReportsByDateUsecase:       reportUsecase.NewGetReportsByDateUsecase(db),
 		GetReportsByUserIDUsecase:     reportUsecase.NewGetReportsByUserIDUsecase(db),
@@ -89,6 +90,8 @@ func main() {
 	userRoutes.SetupUserRoutes(app, userHandler)
 	wastebinRoutes.SetupWasteBinRoutes(app, wastebinHandler)
 	reportRoutes.SetupReportRoutes(app, reportHandler)
+
+	wastebinRoutes.SetupExponentialSmoothingRoutes(app, wastebinHandler)
 
 	if err := app.Listen(":3000"); err != nil {
 		slog.Error("Failed to start server", "error", err)

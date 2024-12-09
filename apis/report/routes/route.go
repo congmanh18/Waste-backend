@@ -7,10 +7,12 @@ import (
 )
 
 func SetupReportRoutes(app *fiber.App, handler handler.ReportHandler) {
-	api := app.Group("/api/reports")
+	api := app.Group("wastebin/reports")
 
 	api.Post("/", handler.HandlerCreateReport())
-	api.Get("/", handler.HandlerGetAllReports())
+	api.Get("/all", handler.HandlerGetAllReports1())
+	api.Get("/last/:id", handler.HandlerGetLast())
+	api.Get("/allid", handler.HandlerGetAllReports())
 	api.Get("/:id", handler.HandlerGetReportByID())
 	api.Delete("/:id", handler.HandlerDeleteReport())
 	api.Get("/user/:user_id", handler.HandlerGetReportsByUserID())

@@ -22,11 +22,11 @@ func (h *ReportHandler) HandlerGetReportsByUserID() fiber.Handler {
 			return fiber.NewError(fiber.StatusInternalServerError, "Failed to retrieve reports by user")
 		}
 
-		var reportIDs []string
-		for _, report := range *reports {
-			reportIDs = append(reportIDs, report.ID)
-		}
+		// var reportIDs []string
+		// for _, report := range *reports {
+		// 	reportIDs = append(reportIDs, report.ID)
+		// }
 
-		return c.Status(fiber.StatusOK).JSON(reportIDs)
+		return c.Status(fiber.StatusOK).JSON(reports)
 	}
 }

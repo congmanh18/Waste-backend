@@ -8,6 +8,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 	// Add a logging library if needed
 	// "github.com/sirupsen/logrus"
 )
@@ -24,6 +25,14 @@ func (h *ReportHandler) HandlerCreateReport() fiber.Handler {
 			return fiber.NewError(fiber.StatusBadRequest, "Invalid request payload")
 		}
 
+		wasteBin, err := h.WasteBinRepo.FindById(ctx, reportReq.WasteBinID)
+		if err != nil {
+			if err == gorm.ErrRecordNotFound {
+				return fiber.NewError(fiber.StatusNotFound, "Waste bin not found")
+			}
+			return fiber.NewError(fiber.StatusInternalServerError, "Failed to fetch waste bin")
+		}
+
 		// Validate essential fields.
 		if reportReq.UserID == nil || reportReq.WasteBinID == nil {
 			return fiber.NewError(fiber.StatusBadRequest, "UserID and WasteBinID are required")
@@ -34,13 +43,19 @@ func (h *ReportHandler) HandlerCreateReport() fiber.Handler {
 
 		// Create a new report entity.
 		report := entity.Report{
-			ID:          reportID.String(),
-			UserID:      reportReq.UserID,
-			WasteBinID:  reportReq.WasteBinID,
-			Image:       reportReq.Image,
-			Description: reportReq.Description,
-			CreatedAt:   time.Now(),
-			UpdatedAt:   time.Now(),
+			ID:            reportID.String(),
+			UserID:        reportReq.UserID,
+			WasteBinID:    reportReq.WasteBinID,
+			Weight:        wasteBin.Weight,
+			RemainingFill: wasteBin.RemainingFill,
+			AirQuality:    wasteBin.AirQuality,
+			Address:       wasteBin.Address,
+			Latitude:      wasteBin.Latitude,
+			Longitude:     wasteBin.Longitude,
+			Image:         reportReq.Image,
+			Description:   reportReq.Description,
+			CreatedAt:     time.Now(),
+			UpdatedAt:     time.Now(),
 		}
 
 		// Attempt to create the report using the use case.

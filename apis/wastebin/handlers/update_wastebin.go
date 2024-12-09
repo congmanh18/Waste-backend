@@ -18,7 +18,8 @@ func (w WasteBinHandler) HandlerUpdateWasteBin() fiber.Handler {
 		ctx, cancel := context.WithTimeout(c.Context(), 5*time.Second)
 		defer cancel()
 
-		currentTime := time.Now()
+		utcPlus7 := time.FixedZone("UTC+7", 7*60*60)
+		currentTime := time.Now().In(utcPlus7)
 
 		var updateWasteBinReq = new(req.CreateWasteBinReq)
 		if err := c.BodyParser(&updateWasteBinReq); err != nil {

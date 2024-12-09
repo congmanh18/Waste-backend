@@ -7,20 +7,17 @@ import (
 )
 
 type User struct {
-	ID           string `gorm:"primaryKey"`
-	FirstName    *string
-	LastName     *string
-	Gender       *string
-	Role         *string
-	Category     *string
-	Email        *string `gorm:"unique"`
-	Phone        *string `gorm:"unique"`
-	Username     *string `gorm:"unique"`
-	Password     *string
-	Token        *string
-	RefreshToken *string
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
+	ID        string `gorm:"primaryKey"`
+	FirstName *string
+	LastName  *string
+	Gender    *string
+	Role      *string
+	Category  *string
+	Email     *string `gorm:"unique"`
+	Phone     *string `gorm:"unique"`
+	Password  *string
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
 func (u User) isPhoneValid() bool {
