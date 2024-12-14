@@ -4,23 +4,20 @@ import (
 	handler "smart-waste/apis/wastebin/handlers"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/websocket/v2"
 )
 
 func SetupWasteBinRoutes(app *fiber.App, wasteBinHandler handler.WasteBinHandler) {
-	var binRoutes = app.Group("/wastebin")
+	var binRoutes = app.Group("/wastebins")
 
 	binRoutes.Post("/", wasteBinHandler.HandlerCreateWasteBin())
 	binRoutes.Put("/:id", wasteBinHandler.HandlerUpdateWasteBin())
-	binRoutes.Delete("/:id", wasteBinHandler.HandlerDeleteWasteBin())
-	binRoutes.Get("/:id", wasteBinHandler.HandlerReadWasteBin())
+	binRoutes.Delete("/:id/remove", wasteBinHandler.HandlerDeleteWasteBin())
+	binRoutes.Get("/:id/info", wasteBinHandler.HandlerReadWasteBin())
 	binRoutes.Get("/", wasteBinHandler.HandlerReadAllIDWasteBins())
-	binRoutes.Get("/info/all", wasteBinHandler.HandlerReadAllWasteBins())
-	binRoutes.Get("/ws/update", websocket.New(wasteBinHandler.WebSocketUpdateWasteBin))
-
+	binRoutes.Get("/all", wasteBinHandler.HandlerReadAllWasteBins())
 }
 
 func SetupExponentialSmoothingRoutes(app *fiber.App, wasteBinHandler handler.WasteBinHandler) {
-	app.Get("/wastebin/ml/exponential", handler.HandlerExponentialSmoothing())
-	app.Get("/wastebin/ml/svm/:id", wasteBinHandler.HandlerSVM())
+	app.Get("/models/expo/:id", wasteBinHandler.HandlerExponentialSmoothing())
+	app.Get("/models/svm/:id", wasteBinHandler.HandlerSVM())
 }

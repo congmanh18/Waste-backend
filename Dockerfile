@@ -13,7 +13,6 @@ RUN go mod download
 
 ### Copy actual source code for building the application
 COPY . .
-COPY ./machine_learning/Processed_Trash_Fill_Data.csv /project/Processed_Trash_Fill_Data.csv
 
 ENV CGO_ENABLED=0
 
@@ -28,7 +27,6 @@ WORKDIR /dist
 ### Copy the .env file
 COPY --from=builder /project/app .
 COPY --from=builder /project/.env .
-COPY --from=builder /project/Processed_Trash_Fill_Data.csv /dist/data/Processed_Trash_Fill_Data.csv
 
 
 
