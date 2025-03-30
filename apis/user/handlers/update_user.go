@@ -15,6 +15,19 @@ func (u UserHandler) HandlerUpdateUser() fiber.Handler {
 		ctx, cancel := context.WithTimeout(c.Context(), 5*time.Second)
 		defer cancel()
 
+		// Lấy ID từ URL params
+		id := c.Params("id")
+		if id == "" {
+			res := res.NewRes(
+				fiber.StatusBadRequest,
+				"Missing user ID in URL parameters.",
+				false,
+				nil,
+			)
+			return res.Send(c)
+		}
+
+		// Parse request body
 		var updateUserReq = new(req.UpdateUserReq)
 		if err := c.BodyParser(&updateUserReq); err != nil {
 			res := res.NewRes(
@@ -27,6 +40,7 @@ func (u UserHandler) HandlerUpdateUser() fiber.Handler {
 			return res.Send(c)
 		}
 
+		// Tạo entity từ request body
 		var userEntity = entity.User{
 			FirstName: updateUserReq.FirstName,
 			LastName:  updateUserReq.LastName,
@@ -36,12 +50,14 @@ func (u UserHandler) HandlerUpdateUser() fiber.Handler {
 			Password:  updateUserReq.Password,
 		}
 
-		var useCaseErr = u.UpdateUserUsecase.ExecuteUpdateUser(ctx, updateUserReq.ID, &userEntity)
+		// Gọi usecase để update user
+		var useCaseErr = u.UpdateUserUsecase.ExecuteUpdateUser(ctx, id, &userEntity)
 		if useCaseErr != nil {
 			res := res.NewRes(fiber.StatusInternalServerError, useCaseErr.Error(), false, nil)
 			return res.Send(c)
 		}
 
+		// Trả về response thành công
 		res := res.NewRes(fiber.StatusOK, "User updated successfully", true, nil)
 		return res.Send(c)
 	}

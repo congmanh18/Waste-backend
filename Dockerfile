@@ -1,7 +1,6 @@
 ##### Stage 1 #####
 FROM golang:1.23-alpine as builder
 
-
 RUN mkdir -p /project
 WORKDIR /project
 
@@ -11,7 +10,6 @@ COPY go.sum .
 
 ### Download Go application module dependencies
 RUN go mod download
-
 
 ### Copy actual source code for building the application
 COPY . .
@@ -29,5 +27,7 @@ WORKDIR /dist
 ### Copy the .env file
 COPY --from=builder /project/app .
 COPY --from=builder /project/.env .
+
+
 
 CMD ["./app"]

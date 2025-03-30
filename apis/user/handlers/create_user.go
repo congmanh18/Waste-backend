@@ -12,7 +12,16 @@ import (
 	"github.com/google/uuid"
 )
 
-// CreateUser Handles creating
+// HandlerLogin godoc
+// @Summary User Register
+// @Description Register with username and password
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Param credentials body CreateUserReq true "CreateUserReq"
+// @Success 200 {object} TokenResponse
+// @Failure 401 {object} fiber.Map
+// @Router /users/login [post]
 func (u UserHandler) HandlerCreateUser() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		ctx, cancel := context.WithTimeout(c.Context(), 5*time.Second)
@@ -30,13 +39,13 @@ func (u UserHandler) HandlerCreateUser() fiber.Handler {
 			return res.Send(c)
 		}
 
-		var _, err = u.GetUserByPhoneUsecase.ExecuteGetUserByPhone(ctx, createUserReq.Phone)
-		if err != nil {
-			// User already exists
-			res := res.NewRes(fiber.StatusConflict, "User with the same phone already exists", false, nil)
-			res.SetError(err)
-			return res.Send(c)
-		}
+		// var _, err = u.GetUserByPhoneUsecase.ExecuteGetUserByPhone(ctx, createUserReq.Phone)
+		// if err != nil {
+		// 	// User already exists
+		// 	res := res.NewRes(fiber.StatusConflict, "User with the same phone already exists", false, nil)
+		// 	res.SetError(err)
+		// 	return res.Send(c)
+		// }
 
 		hashedPassword, err := security.HashAndSalt([]byte(*createUserReq.Password))
 		if err != nil {

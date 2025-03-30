@@ -14,6 +14,7 @@ type ReportRepo interface {
 	GetByDate(ctx context.Context, date *string) (*[]entity.Report, error)
 	GetAll(ctx context.Context) (*[]entity.Report, error)
 	GetAllByUserID(ctx context.Context, userID *string) (*[]entity.Report, error)
+	GetLatestByWasteBinID(ctx context.Context, wasteBinID *string) (*entity.Report, error)
 	GetAllByWasteBinID(ctx context.Context, wasteBinID *string) (*[]entity.Report, error)
 	DeleteReport(ctx context.Context, id *string) error
 }
@@ -56,7 +57,7 @@ func (r *reportRepoImpl) GetByDate(ctx context.Context, date *string) (*[]entity
 // Lấy tất cả báo cáo
 func (r *reportRepoImpl) GetAll(ctx context.Context) (*[]entity.Report, error) {
 	var reports []entity.Report
-	if err := r.db.WithContext(ctx).Find(&reports).Error; err != nil {
+	if err := r.db.WithContext(ctx).Order("updated_at DESC").Debug().Find(&reports).Error; err != nil {
 		return nil, err
 	}
 	return &reports, nil
@@ -82,6 +83,17 @@ func (r *reportRepoImpl) GetAllByWasteBinID(ctx context.Context, wasteBinID *str
 		return nil, err
 	}
 	return &reportList, nil
+}
+
+func (r *reportRepoImpl) GetLatestByWasteBinID(ctx context.Context, wasteBinID *string) (*entity.Report, error) {
+	var report entity.Report
+	err := r.db.WithContext(ctx).Debug().
+		Where("waste_bin_id = ?", *wasteBinID).
+		Order("updated_at desc").First(&report).Error
+	if err != nil {
+		return nil, err
+	}
+	return &report, nil
 }
 
 // Xóa báo cáo theo ID

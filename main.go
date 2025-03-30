@@ -7,8 +7,6 @@ import (
 	userHandler "smart-waste/apis/user/handlers"
 	wastebinHandler "smart-waste/apis/wastebin/handlers"
 
-	_ "smart-waste/docs"
-
 	"github.com/gofiber/swagger"
 	"github.com/joho/godotenv"
 
@@ -24,18 +22,26 @@ import (
 	userEntity "smart-waste/domain/user/entity"
 	wasteBinEntity "smart-waste/domain/wastebin/entity"
 
+	userRepo "smart-waste/domain/user/repository"
+	wasteBinRepo "smart-waste/domain/wastebin/repository"
+
 	"smart-waste/pkgs/db"
 
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 )
 
-var enableMigration = true
+var enableMigration = false
 
-// @title Waste Management API
+// @title Smart Waste Management API
 // @version 1.0
-// @description This is a waste management API server.
-// @host localhost:3000
+// @description This is a sample swagger for Fiber
+// @termsOfService http://swagger.io/terms/
+// @contact.name API Support
+// @contact.email nguyenmanh180102@gmail.com
+// @license.name Nginx 2.0
+// @license.url http://www.apache.org/licenses/LICENSE-2.0.html
+// @host localhost:8080
 // @BasePath /
 func main() {
 	// Khởi tạo Fiber app
@@ -49,6 +55,7 @@ func main() {
 	db := connectAndMigrateDB()
 
 	// Khởi tạo các handler và route
+	userRepo := userRepo.NewUserRepo(db)
 	userHandler := userHandler.UserHandler{
 		CreateUserUsecase:     userUsecase.NewCreateUserUsecase(db),
 		GetUserByPhoneUsecase: userUsecase.NewGetUserByPhoneUsecase(db),
@@ -58,6 +65,7 @@ func main() {
 		FindAllUserUsecase:    userUsecase.NewFindAllUserUsecase(db),
 	}
 
+	wastebinRepo := wasteBinRepo.NewWasteBinRepo(db)
 	wastebinHandler := wastebinHandler.WasteBinHandler{
 		CreateWasteBinUsecase:  wastebinUsecase.NewCreateWasteBinUsecase(db),
 		UpdateWasteBinUsecase:  wastebinUsecase.NewUpdateWasteBinUsecase(db),
@@ -70,23 +78,25 @@ func main() {
 		CreateReportUsecase:           reportUsecase.NewCreateReportUsecase(db),
 		DeleteReportUsecase:           reportUsecase.NewDeleteReportUsecase(db),
 		GetAllReportsUsecase:          reportUsecase.NewGetAllReportsUsecase(db),
+		GetLast:                       reportUsecase.NewGetLatestByWasteBinID(db),
 		GetReportByIDUsecase:          reportUsecase.NewGetReportByIDUsecase(db),
 		GetReportsByDateUsecase:       reportUsecase.NewGetReportsByDateUsecase(db),
 		GetReportsByUserIDUsecase:     reportUsecase.NewGetReportsByUserIDUsecase(db),
 		GetReportsByWasteBinIDUsecase: reportUsecase.NewGetReportsByWasteBinIDUsecase(db),
+		WasteBinRepo:                  wastebinRepo,
+		UserRepo:                      userRepo,
 	}
 
-	// Thiết lập route người dùng
 	userRoutes.SetupUserRoutes(app, userHandler)
-
-	// Thiết lập route wastebin
 	wastebinRoutes.SetupWasteBinRoutes(app, wastebinHandler)
-
-	// Thiết lập route report
 	reportRoutes.SetupReportRoutes(app, reportHandler)
 
-	// Chạy ứng dụng trên cổng 3000
-	app.Listen(":3000")
+	wastebinRoutes.SetupExponentialSmoothingRoutes(app, wastebinHandler)
+
+	if err := app.Listen(":3000"); err != nil {
+		slog.Error("Failed to start server", "error", err)
+		panic(err)
+	}
 }
 
 func connectAndMigrateDB() *gorm.DB {
@@ -106,11 +116,22 @@ func connectAndMigrateDB() *gorm.DB {
 		Port:     os.Getenv("DB_PORT"),
 	}
 
+	// Kiểm tra xem các biến môi trường đã được load chưa
+	if conn.Host == "" || conn.User == "" || conn.DBName == "" {
+		slog.Error("Missing environment variables for DB connection")
+		panic("Missing environment variables for DB connection")
+	}
+
 	// Kết nối tới cơ sở dữ liệu
 	gormDB, err := db.New(conn)
 	if err != nil {
-		slog.Error("failed to connect to database", "error", err)
+		slog.Error("Failed to connect to database", "error", err)
 		panic(err)
+	}
+
+	// Kiểm tra xem DB có được khởi tạo không
+	if gormDB == nil {
+		panic("Database connection is nil")
 	}
 
 	if enableMigration {
@@ -133,3 +154,7 @@ func migrateDB(db *gorm.DB) {
 		}
 	}
 }
+
+// docker push manh18/final:latest^C
+// docker tag final manh18/final2:latest
+// docker build -t final2 .

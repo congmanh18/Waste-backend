@@ -9,7 +9,7 @@ import (
 
 type UserRepo interface {
 	Save(ctx context.Context, user *entity.User) error
-	Update(ctx context.Context, id *string, user *entity.User) error
+	Update(ctx context.Context, id string, user *entity.User) error
 	GetByPhone(ctx context.Context, phone *string) (*entity.User, error)
 	FindById(ctx context.Context, id *string) (*entity.User, error)
 	FindAll(ctx context.Context) (*[]entity.User, error)
@@ -30,7 +30,7 @@ func (u *userRepoImpl) Save(ctx context.Context, user *entity.User) error {
 	return u.gorm.WithContext(ctx).Debug().Save(&user).Error
 }
 
-func (u *userRepoImpl) Update(ctx context.Context, id *string, user *entity.User) error {
+func (u *userRepoImpl) Update(ctx context.Context, id string, user *entity.User) error {
 	return u.gorm.WithContext(ctx).Debug().Where("id = ?", id).Updates(&user).Error
 }
 
@@ -52,7 +52,8 @@ func (u *userRepoImpl) FindById(ctx context.Context, id *string) (*entity.User, 
 
 func (u *userRepoImpl) FindAll(ctx context.Context) (*[]entity.User, error) {
 	var userList []entity.User
-	if err := u.gorm.WithContext(ctx).Debug().Find(&userList).Error; err != nil { //+
+	// Sort theo alphabet của cột last_name
+	if err := u.gorm.WithContext(ctx).Debug().Order("last_name ASC").Find(&userList).Error; err != nil {
 		return nil, err
 	}
 	return &userList, nil
